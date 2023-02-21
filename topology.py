@@ -1,4 +1,6 @@
 import baseline_algorithms
+from matplotlib import pyplot as plt
+import networkx as nx
 
 
 class Graph:
@@ -59,14 +61,29 @@ class Graph:
             self.data[n2][n1] = 0
 
 
+def draw_directed_weighted_graph(edges, path=None):
+    edges = ((n1, n2, {"weight": weight}) for n1, n2, weight in edges)
+    graph = nx.DiGraph(edges)
+    position = nx.spring_layout(graph)
+    if path:
+        node_colors = ["#72f536" if node in path else "#4287f5" for node in graph.nodes()]
+    else:
+        node_colors = "#4287f5"
+    nx.draw(graph, pos=position, with_labels=True, font_weight='bold', node_color=node_colors)
+    edge_weight = nx.get_edge_attributes(graph, 'weight')
+    nx.draw_networkx_edge_labels(graph, pos=position, edge_labels=edge_weight)
+    plt.show()
+
+
 def main():
     num_nodes = 4
     edges = [(0, 1, 8), (0, 3, 5), (1, 3, 4), (1, 2, 5), (2, 3, 6)]
     graph = Graph(num_nodes, edges)
-    graph.add_edge((2, 2, 4))
-    graph.remove_edge((0, 3))
     print(graph)
-    print(baseline_algorithms.bfs(graph, 0, 3))
+    result = baseline_algorithms.bfs(graph.data, 0, 3)
+    print(result)
+
+    draw_directed_weighted_graph(edges, path=result[0])
 
 
 if __name__ == '__main__':
