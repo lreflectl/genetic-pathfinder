@@ -76,11 +76,11 @@ def draw_directed_weighted_graph(edges, path=None):
 
 
 def main():
-    num_nodes = 4
-    edges = [(0, 1, 8), (0, 3, 5), (1, 3, 4), (1, 2, 5), (2, 3, 6)]
-    graph = Graph(num_nodes, edges)
+    num_nodes = 6
+    edges = [(0, 1, 4), (0, 2, 2), (1, 3, 10), (1, 2, 5), (2, 4, 3), (3, 5, 11), (4, 3, 4)]
+    graph = Graph(num_nodes, edges, is_directed=True)
     print(graph)
-    result = baseline_algorithms.bfs(graph.data, 0, 3)
+    result = baseline_algorithms.dijkstra(graph.data, 0, 5)
     print(result)
 
     draw_directed_weighted_graph(edges, path=result[0])
