@@ -66,7 +66,7 @@ def main():
     graph.add_edge((2, 2, 4))
     graph.remove_edge((0, 3))
     print(graph)
-    print(baseline_algorithms.dfs(graph, 0))
+    print(baseline_algorithms.bfs(graph, 0, 3))
 
 
 if __name__ == '__main__':
