@@ -75,7 +75,6 @@ class Graph:
             self.adjacency_lists[n2].remove(n1)
 
 
-
 def draw_directed_weighted_graph(edges, path=None):
     edges = ((n1, n2, {"weight": weight}) for n1, n2, weight in edges)
     graph = nx.DiGraph(edges)
@@ -90,9 +89,7 @@ def draw_directed_weighted_graph(edges, path=None):
     plt.show()
 
 
-def main():
-    num_nodes = 30
-    # edges = [(0, 1, 4), (0, 2, 2), (1, 3, 10), (1, 2, 5), (2, 4, 3), (3, 5, 11), (4, 3, 4)]
+def generate_random_edges(num_nodes):
     edges = []
     random.seed(1)
     unique_edges = set()
@@ -101,22 +98,35 @@ def main():
         unique_edges.add((unique_rands[0], unique_rands[1]))
     for edge in unique_edges:
         edges.append((*edge, random.randint(1, 10)))
+    return edges
+
+
+def main():
+    num_nodes = 30
+    edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (6, 8, 5),
+             (6, 9, 2), (7, 8, 1), (8, 10, 4), (8, 12, 3), (9, 10, 3), (11, 6, 3), (12, 7, 5)]
+    # edges = generate_random_edges(num_nodes)
 
     graph = Graph(num_nodes, edges, is_directed=True)
     print(graph)
     print(graph.adjacency_lists)
     draw_directed_weighted_graph(edges)
 
+    # ------ Algorithms time comparison ------
+
+    # source, destination = 18, 29
+    #
     # dijkstra_start = time.perf_counter()
     # for i in range(100000):
-    #     result = baseline_algorithms.dijkstra(graph.data, 18, 29)
+    #     result = baseline_algorithms.dijkstra(graph.data, source, destination)
     # print(f"Dijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec")
     #
-    # result = []
     # a_star_start = time.perf_counter()
     # for i in range(100000):
-    #     result = baseline_algorithms.a_star(graph.data, 18, 29)
+    #     result = baseline_algorithms.a_star(graph.data, source, destination)
     # print(f"A-Star time = {time.perf_counter() - a_star_start:.2f} sec")
+
+    # --------------------------------------
 
     # a_star_start = time.perf_counter()
     # result = baseline_algorithms.a_star(graph.data, 18, 29)
@@ -124,7 +134,9 @@ def main():
     # print(result)
     # draw_directed_weighted_graph(edges, path=result[0])
 
-    print(genetic_algorithm.fitness([18, 27, 16, 26, 29], graph.data))
+    # ------------------------------
+
+    print(genetic_algorithm.reverse_dfs(10, graph.data))
 
 
 if __name__ == '__main__':

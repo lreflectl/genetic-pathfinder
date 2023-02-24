@@ -1,4 +1,43 @@
-from topology import Graph
+import heapq
+
+
+class Node:
+    def __init__(self, idx, weight):
+        self.idx = idx
+        self.weight = weight
+
+    def __gt__(self, other):
+        return self.weight > other
+
+    def __lt__(self, other):
+        return self.weight < other
+
+    def __repr__(self):
+        return f"{self.idx}"
+
+
+def dfs_connected(graph_data: list[list[int]]):
+    stack = [root]
+    discovered = [False] * len(graph.data)
+    previous = [-1] * len(graph.data)
+    distance = [-1] * len(graph.data)
+
+    discovered[root] = True
+    distance[root] = 0
+
+    history = []
+    while stack:
+        current = stack.pop()
+        history.append(current)
+
+        for neighbour, dist in enumerate(graph.data[current]):
+            if dist > 0 and not discovered[neighbour]:
+                stack.append(neighbour)
+                discovered[neighbour] = True
+                previous[neighbour] = current
+                distance[neighbour] = distance[current] + dist
+
+    return history, previous, distance
 
 
 # Gives the shortest path only on unweighted graph
@@ -40,38 +79,32 @@ def bfs(graph_data: list[list[int]], source: int, destination: int):
 
 
 def dijkstra(graph_data: list[list[int]], source: int, destination: int):
-    queue = []
+    heap = []
     discovered = [False] * len(graph_data)
     distance = [float('inf')] * len(graph_data)
     previous = [-1] * len(graph_data)
 
     discovered[source] = True
     distance[source] = 0
-    queue.append(source)
-    idx = 0
+    heapq.heappush(heap, Node(source, 0))
 
-    while idx < len(queue):
-        current = queue[idx]
-        idx += 1
-
-        if current == destination:
-            break
+    while heap:
+        current = heapq.heappop(heap).idx
+        discovered[current] = True
 
         for neighbour, dist in enumerate(graph_data[current]):
-            if dist > 0 and not discovered[neighbour]:
-                discovered[neighbour] = True
+            if dist > 0:
                 new_dist = distance[current] + dist
                 if distance[neighbour] > new_dist:
                     distance[neighbour] = new_dist
                     previous[neighbour] = current
 
-        neighbours_with_dist = tuple(
+        neighbours_with_dist = (
             (node, distance[node]) for node, weight in enumerate((dist for dist in graph_data[current])) if weight > 0
         )
-        if len(neighbours_with_dist) > 0:
-            queue.append(
-                min(neighbours_with_dist, key=lambda x: x[1])[0]
-            )
+        for node in neighbours_with_dist:
+            if not discovered[node[0]]:
+                heapq.heappush(heap, Node(node[0], node[1]))
 
     best_route = []
     current = destination
@@ -85,7 +118,7 @@ def dijkstra(graph_data: list[list[int]], source: int, destination: int):
 
 
 def a_star(graph_data: list[list[int]], source: int, destination: int):
-    queue = []
+    heap = []
     discovered = [False] * len(graph_data)
     distance = [float('inf')] * len(graph_data)
     previous = [-1] * len(graph_data)
@@ -96,31 +129,25 @@ def a_star(graph_data: list[list[int]], source: int, destination: int):
 
     discovered[source] = True
     distance[source] = 0
-    queue.append(source)
-    idx = 0
+    heapq.heappush(heap, Node(source, 0))
 
-    while idx < len(queue):
-        current = queue[idx]
-        idx += 1
-
-        if current == destination:
-            break
+    while heap:
+        current = heapq.heappop(heap).idx
+        discovered[current] = True
 
         for neighbour, dist in enumerate(graph_data[current]):
             if dist > 0:
-                discovered[neighbour] = True
                 new_dist = distance[current] + dist
                 if distance[neighbour] > new_dist:
                     distance[neighbour] = new_dist
                     previous[neighbour] = current
 
-        neighbours_with_dist = tuple(
-            (node, distance[node] + hops_to_destination[node]) for node, weight in enumerate((dist for dist in graph_data[current])) if weight > 0
+        neighbours_with_dist = (
+            (node, distance[node]) for node, weight in enumerate((dist for dist in graph_data[current])) if weight > 0
         )
-        if len(neighbours_with_dist) > 0:
-            queue.append(
-                min(neighbours_with_dist, key=lambda x: x[1])[0]
-            )
+        for node in neighbours_with_dist:
+            if not discovered[node[0]]:
+                heapq.heappush(heap, Node(node[0], node[1] + hops_to_destination[node[0]]))
 
     best_route = []
     current = destination
