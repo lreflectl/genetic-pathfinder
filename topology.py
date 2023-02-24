@@ -110,7 +110,7 @@ def main():
     graph = Graph(num_nodes, edges, is_directed=True)
     print(graph)
     print(graph.adjacency_lists)
-    draw_directed_weighted_graph(edges)
+    # draw_directed_weighted_graph(edges)
 
     # ------ Algorithms time comparison ------
 
@@ -136,7 +136,15 @@ def main():
 
     # ------------------------------
 
-    print(genetic_algorithm.reverse_dfs(10, graph.data))
+    sub_graph_nodes = genetic_algorithm.reverse_dfs(10, graph.data)
+    sub_graph_adj_lists = dict(
+        ( node, list(filter(lambda n: n in sub_graph_nodes, graph.adjacency_lists[node])) )
+        for node in sub_graph_nodes
+    )
+    print(sub_graph_adj_lists)
+    result = genetic_algorithm.randomized_dfs(0, 10, sub_graph_adj_lists)
+    print(result)
+    print(genetic_algorithm.fitness(result, graph.data))
 
 
 if __name__ == '__main__':

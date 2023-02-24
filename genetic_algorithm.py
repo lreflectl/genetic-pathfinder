@@ -18,9 +18,21 @@ def reverse_dfs(destination: int, graph_data: list[list[int]]) -> list[int]:
     return nodes
 
 
-def randomized_dfs(source: int, destination: int, graph_data: list[list[int]]) -> list[int]:
+def randomized_dfs(source: int, destination: int, adj_lists: dict[int, list[int]]) -> list[int]:
     """ Returns random path from source to destination on limited by reverse_dfs() graph. """
-    pass
+    stack = [source]
+    visited = dict(zip(adj_lists.keys(), (False,) * len(adj_lists)))
+
+    path = []
+    while stack and not visited[destination]:
+        current = stack.pop()
+        path.append(current)
+        neighbours = adj_lists[current].copy()
+        random.shuffle(neighbours)
+        stack.extend(neighbours)
+        visited[current] = True
+
+    return path
 
 
 def fitness(path: list[int], graph_data: list[list[int]]) -> float:
@@ -37,21 +49,9 @@ def fitness(path: list[int], graph_data: list[list[int]]) -> float:
     return path_cost
 
 
-def get_common_nodes(source: int, destination: int, graph_data: list[list[int]]):
-    """ Creates list of nodes reachable both from destination and source """
-    source_reachable = set()
-    destination_reachable = set()
-
-
 def generate_initial_population(source: int, destination: int, graph_adj_lists: list[list[int]]) -> list[list[int]]:
     """ Creates random sample of possible paths from source to destination. """
-    population_size = 100
-    for path_num in range(population_size):
-        current = graph_adj_lists[source]
-        visited = [False] * len(graph_adj_lists)
 
-        while current != destination:
-            pass
 
 
 
