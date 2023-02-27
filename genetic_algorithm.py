@@ -18,19 +18,42 @@ def reverse_dfs(destination: int, graph_data: list[list[int]]) -> list[int]:
     return nodes
 
 
-def randomized_dfs(source: int, destination: int, adj_lists: dict[int, list[int]]) -> list[int]:
-    """ Returns random path from source to destination on limited by reverse_dfs() graph. """
-    stack = [source]
-    visited = dict(zip(adj_lists.keys(), (False,) * len(adj_lists)))
+def create_sub_graph(nodes: list[int], graph_data: list[list[int]]) -> list[list[int]]:
+    """ Create copy of a graph data with edges only among nodes in the list. Returns new graph data matrix. """
+    sub_graph_data = [[0] * len(graph_data) for _ in range(len(graph_data))]
+    for node in nodes:
+        for edge in nodes:
+            sub_graph_data[node][edge] = graph_data[node][edge]
+    return sub_graph_data
 
-    path = []
-    while stack and not visited[destination]:
+
+def randomized_dfs(source: int, destination: int, sub_nodes_num: int, sub_graph_data: list[list[int]]) -> list[int]:
+    """ Returns random path from source to destination on the sub graph. """
+    stack = [source]
+    visited = [False] * len(sub_graph_data)
+
+    previous = [-1] * len(sub_graph_data)
+
+    for _ in range(sub_nodes_num):
         current = stack.pop()
-        path.append(current)
-        neighbours = adj_lists[current].copy()
+        if current == destination:
+            break
+
+        neighbours = []
+        for neighbour, weight in enumerate(sub_graph_data[current]):
+            if weight > 0 and not visited[neighbour]:
+                neighbours.append(neighbour)
+                previous[neighbour] = current
         random.shuffle(neighbours)
         stack.extend(neighbours)
         visited[current] = True
+
+    path = []
+    current = destination
+    while current != -1:
+        path.append(current)
+        current = previous[current]
+    path.reverse()
 
     return path
 
@@ -49,16 +72,26 @@ def fitness(path: list[int], graph_data: list[list[int]]) -> float:
     return path_cost
 
 
-def generate_initial_population(source: int, destination: int, graph_adj_lists: list[list[int]]) -> list[list[int]]:
+def generate_initial_population(
+        source: int, destination: int, population_size: int, graph_data: list[list[int]]
+) -> list[list[int]]:
     """ Creates random sample of possible paths from source to destination. """
+    sub_graph_nodes = reverse_dfs(destination, graph_data)
+
+    sub_graph_data = create_sub_graph(sub_graph_nodes, graph_data)
+
+    population = []
+    for i in range(population_size):
+        population.append(randomized_dfs(source, destination, len(sub_graph_nodes), sub_graph_data))
+    return population
 
 
-
+def tournament(population: list[list[int]], graph_data: list[list[int]], remain_pct=0.5) -> list[list[int]]:
+    population.sort(key=lambda path: fitness(path, graph_data))
+    population = population[:round(len(population)*remain_pct)]
+    return population
 
 
 def genetic(graph_data: list[list[int]], source: int, destination: int):
-
-
-
     best_route = []
     return best_route

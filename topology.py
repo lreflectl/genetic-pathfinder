@@ -103,28 +103,29 @@ def generate_random_edges(num_nodes):
 
 def main():
     num_nodes = 30
-    edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (6, 8, 5),
-             (6, 9, 2), (7, 8, 1), (8, 10, 4), (8, 12, 3), (9, 10, 3), (11, 6, 3), (12, 7, 5)]
-    # edges = generate_random_edges(num_nodes)
+    # edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (6, 8, 5),
+    #          (6, 9, 2), (7, 8, 1), (8, 10, 4), (8, 12, 3), (9, 10, 3), (11, 6, 3), (12, 7, 5)]
+    edges = generate_random_edges(num_nodes)
 
     graph = Graph(num_nodes, edges, is_directed=True)
-    print(graph)
-    print(graph.adjacency_lists)
-    # draw_directed_weighted_graph(edges)
+    # print(graph)
+    # print(graph.adjacency_lists)
+    draw_directed_weighted_graph(edges)
 
     # ------ Algorithms time comparison ------
 
-    # source, destination = 18, 29
-    #
-    # dijkstra_start = time.perf_counter()
-    # for i in range(100000):
-    #     result = baseline_algorithms.dijkstra(graph.data, source, destination)
-    # print(f"Dijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec")
-    #
-    # a_star_start = time.perf_counter()
-    # for i in range(100000):
-    #     result = baseline_algorithms.a_star(graph.data, source, destination)
-    # print(f"A-Star time = {time.perf_counter() - a_star_start:.2f} sec")
+    source, destination = 18, 29
+
+    dijkstra_start = time.perf_counter()
+    for i in range(10000):
+        best_path = baseline_algorithms.dijkstra(graph.data, source, destination)
+    print(f"Dijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec")
+
+    genetic_start = time.perf_counter()
+    for i in range(10000):
+        population = genetic_algorithm.generate_initial_population(0, 10, 4, graph.data)
+        best_path = genetic_algorithm.tournament(population, graph.data)[0]
+    print(f"Genetic time = {time.perf_counter() - genetic_start:.2f} sec")
 
     # --------------------------------------
 
@@ -136,15 +137,10 @@ def main():
 
     # ------------------------------
 
-    sub_graph_nodes = genetic_algorithm.reverse_dfs(10, graph.data)
-    sub_graph_adj_lists = dict(
-        ( node, list(filter(lambda n: n in sub_graph_nodes, graph.adjacency_lists[node])) )
-        for node in sub_graph_nodes
-    )
-    print(sub_graph_adj_lists)
-    result = genetic_algorithm.randomized_dfs(0, 10, sub_graph_adj_lists)
-    print(result)
-    print(genetic_algorithm.fitness(result, graph.data))
+    # population = genetic_algorithm.generate_initial_population(0, 10, 8, graph.data)
+    # print(population)
+    # best_path = genetic_algorithm.tournament(population, graph.data)[0]
+    # print(best_path)
 
 
 if __name__ == '__main__':
