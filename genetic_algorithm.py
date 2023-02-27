@@ -1,3 +1,4 @@
+import math
 import random
 
 
@@ -18,35 +19,38 @@ def reverse_dfs(destination: int, graph_data: list[list[int]]) -> list[int]:
     return nodes
 
 
-def create_sub_graph(nodes: list[int], graph_data: list[list[int]]) -> list[list[int]]:
-    """ Create copy of a graph data with edges only among nodes in the list. Returns new graph data matrix. """
-    sub_graph_data = [[0] * len(graph_data) for _ in range(len(graph_data))]
-    for node in nodes:
-        for edge in nodes:
-            sub_graph_data[node][edge] = graph_data[node][edge]
-    return sub_graph_data
+def create_sub_graph_adj_lists(sub_graph_nodes: list[int], graph_data: list[list[int]]) -> dict[int, list[int]]:
+    """ Create sub graph adjacency list with edges only among nodes in the nodes list. Return sub graph adj list. """
+    sub_graph_adj_lists = dict((sub_node, []) for sub_node in sub_graph_nodes)
+    for sub_node in sub_graph_nodes:
+        for edge in sub_graph_nodes:
+            edge_weight = graph_data[sub_node][edge]
+            if edge_weight > 0:
+                sub_graph_adj_lists[sub_node].append(edge)
+    return sub_graph_adj_lists
 
 
-def randomized_dfs(source: int, destination: int, sub_nodes_num: int, sub_graph_data: list[list[int]]) -> list[int]:
+def randomized_dfs(
+        source: int, destination: int, sub_nodes: list[int], sub_graph_adj_lists: dict[int, list[int]]) -> list[int]:
     """ Returns random path from source to destination on the sub graph. """
     stack = [source]
-    visited = [False] * len(sub_graph_data)
+    visited = dict((node, False) for node in sub_nodes)
+    previous = dict((node, -1) for node in sub_nodes)
+    visited[source] = True
 
-    previous = [-1] * len(sub_graph_data)
-
-    for _ in range(sub_nodes_num):
+    for _ in range(len(sub_nodes)):
         current = stack.pop()
-        if current == destination:
-            break
 
-        neighbours = []
-        for neighbour, weight in enumerate(sub_graph_data[current]):
-            if weight > 0 and not visited[neighbour]:
-                neighbours.append(neighbour)
-                previous[neighbour] = current
+        neighbours = sub_graph_adj_lists[current].copy()
         random.shuffle(neighbours)
-        stack.extend(neighbours)
-        visited[current] = True
+        for neighbour in neighbours:
+            if not visited[neighbour]:
+                stack.append(neighbour)
+                visited[neighbour] = True
+                previous[neighbour] = current
+
+        if current == destination or not stack:
+            break
 
     path = []
     current = destination
@@ -73,22 +77,21 @@ def fitness(path: list[int], graph_data: list[list[int]]) -> float:
 
 
 def generate_initial_population(
-        source: int, destination: int, population_size: int, graph_data: list[list[int]]
-) -> list[list[int]]:
+        source: int, destination: int, population_size: int, graph_data: list[list[int]]) -> list[list[int]]:
     """ Creates random sample of possible paths from source to destination. """
     sub_graph_nodes = reverse_dfs(destination, graph_data)
 
-    sub_graph_data = create_sub_graph(sub_graph_nodes, graph_data)
+    sub_graph_adj_lists = create_sub_graph_adj_lists(sub_graph_nodes, graph_data)
 
     population = []
-    for i in range(population_size):
-        population.append(randomized_dfs(source, destination, len(sub_graph_nodes), sub_graph_data))
+    for _ in range(population_size):
+        population.append(randomized_dfs(source, destination, sub_graph_nodes, sub_graph_adj_lists))
     return population
 
 
 def tournament(population: list[list[int]], graph_data: list[list[int]], remain_pct=0.5) -> list[list[int]]:
     population.sort(key=lambda path: fitness(path, graph_data))
-    population = population[:round(len(population)*remain_pct)]
+    population = population[:math.ceil(len(population)*remain_pct)]
     return population
 
 

@@ -98,19 +98,23 @@ def generate_random_edges(num_nodes):
         unique_edges.add((unique_rands[0], unique_rands[1]))
     for edge in unique_edges:
         edges.append((*edge, random.randint(1, 10)))
+    # Clear seed for another functions to work properly
+    random.seed()
     return edges
 
 
 def main():
-    num_nodes = 30
+    # num_nodes = 13
     # edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (6, 8, 5),
     #          (6, 9, 2), (7, 8, 1), (8, 10, 4), (8, 12, 3), (9, 10, 3), (11, 6, 3), (12, 7, 5)]
+
+    num_nodes = 30
     edges = generate_random_edges(num_nodes)
 
     graph = Graph(num_nodes, edges, is_directed=True)
     # print(graph)
     # print(graph.adjacency_lists)
-    draw_directed_weighted_graph(edges)
+    # draw_directed_weighted_graph(edges)
 
     # ------ Algorithms time comparison ------
 
@@ -119,13 +123,13 @@ def main():
     dijkstra_start = time.perf_counter()
     for i in range(10000):
         best_path = baseline_algorithms.dijkstra(graph.data, source, destination)
-    print(f"Dijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec")
+    print(f"Dijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec, path = {best_path}")
 
     genetic_start = time.perf_counter()
     for i in range(10000):
-        population = genetic_algorithm.generate_initial_population(0, 10, 4, graph.data)
+        population = genetic_algorithm.generate_initial_population(source, destination, 8, graph.data)
         best_path = genetic_algorithm.tournament(population, graph.data)[0]
-    print(f"Genetic time = {time.perf_counter() - genetic_start:.2f} sec")
+    print(f"Genetic time = {time.perf_counter() - genetic_start:.2f} sec, path = {(best_path, genetic_algorithm.fitness(best_path, graph.data))}")
 
     # --------------------------------------
 
@@ -137,10 +141,18 @@ def main():
 
     # ------------------------------
 
-    # population = genetic_algorithm.generate_initial_population(0, 10, 8, graph.data)
+    # initial_pop_start = time.perf_counter()
+    # for _ in range(10000):
+    #     population = genetic_algorithm.generate_initial_population(0, 10, 32, graph.data)
+    # print(f"generate_initial_population time = {time.perf_counter() - initial_pop_start}")
     # print(population)
-    # best_path = genetic_algorithm.tournament(population, graph.data)[0]
+    # tournament_start = time.perf_counter()
+    # for _ in range(10000):
+    #     best_path = genetic_algorithm.tournament(population, graph.data)[0]
+    # print(f"tournament time = {time.perf_counter() - tournament_start}")
     # print(best_path)
+
+    # print(genetic_algorithm.generate_initial_population(0, 10, 1, graph.data))
 
 
 if __name__ == '__main__':
