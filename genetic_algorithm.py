@@ -38,19 +38,20 @@ def randomized_dfs(
     previous = dict((node, -1) for node in sub_nodes)
     visited[source] = True
 
-    for _ in range(len(sub_nodes)):
+    while not visited[destination] or not stack:
         current = stack.pop()
 
-        neighbours = sub_graph_adj_lists[current].copy()
-        random.shuffle(neighbours)
-        for neighbour in neighbours:
-            if not visited[neighbour]:
-                stack.append(neighbour)
-                visited[neighbour] = True
-                previous[neighbour] = current
-
-        if current == destination or not stack:
-            break
+        neighbours = []
+        for neigh in sub_graph_adj_lists[current]:
+            if not visited[neigh]:
+                visited[neigh] = True
+                previous[neigh] = current
+                # faster than random.shuffle() to randomly distribute neighbours in stack
+                if random.getrandbits(1):  # return 0 or 1
+                    neighbours.append(neigh)
+                else:
+                    stack.append(neigh)
+        stack.extend(neighbours)
 
     path = []
     current = destination
@@ -86,6 +87,7 @@ def generate_initial_population(
     population = []
     for _ in range(population_size):
         population.append(randomized_dfs(source, destination, sub_graph_nodes, sub_graph_adj_lists))
+
     return population
 
 
