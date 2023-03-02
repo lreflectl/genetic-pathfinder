@@ -14,8 +14,8 @@ def draw_fnss_topology(topology):
 
 
 def main():
-    fat_tree_topology = fnss.fat_tree_topology(4)
-    draw_fnss_topology(fat_tree_topology.graph)
+    # fat_tree_topology = fnss.fat_tree_topology(4)
+    # draw_fnss_topology(fat_tree_topology.graph)
 
     # num_nodes = 13
     # edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (6, 8, 5),
@@ -61,6 +61,11 @@ def main():
     # print(best_path)
 
     # print(genetic_algorithm.generate_initial_population(0, 10, 1, graph.data))
+
+    path1 = [0, 3, 6, 8, 10]
+    path2 = [0, 5, 6, 9, 10]
+    children = genetic_algorithm.crossover(path1, path2)
+    print(children)
 
 
 if __name__ == '__main__':

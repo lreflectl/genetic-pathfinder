@@ -91,10 +91,37 @@ def generate_initial_population(
     return population
 
 
+# def tournament(population: list[list[int]], graph_data: list[list[int]], remain_pct=0.5) -> list[list[int]]:
+#     population.sort(key=lambda path: fitness(path, graph_data))
+#     population = population[:math.ceil(len(population)*remain_pct)]
+#     return population
+
+
 def tournament(population: list[list[int]], graph_data: list[list[int]], remain_pct=0.5) -> list[list[int]]:
     population.sort(key=lambda path: fitness(path, graph_data))
     population = population[:math.ceil(len(population)*remain_pct)]
     return population
+
+
+def crossover(path1: list[int], path2: list[int]) -> tuple[list[int], list[int]]:
+    """ Randomly pick common node for the paths, then cut them and connect pieces in with each other.
+    Support only simple paths. Return two new children. """
+
+    common_nodes = [node for node in path1[1:-2] if node in path2]
+    if len(common_nodes) < 1:
+        return path1, path2
+
+    node = random.choice(common_nodes)
+    node_id_in_path1 = path1.index(node)
+    node_id_in_path2 = path2.index(node)
+
+    child1 = path1[:node_id_in_path1] + path2[node_id_in_path2:]
+    child2 = path2[:node_id_in_path2] + path1[node_id_in_path1:]
+    return child1, child2
+
+
+def mutation(path: list[int]) -> list[int]:
+    pass
 
 
 def genetic(graph_data: list[list[int]], source: int, destination: int):
