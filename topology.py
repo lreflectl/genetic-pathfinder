@@ -58,13 +58,13 @@ def main():
     print(population)
     tournament_start = time.perf_counter()
     # for _ in range(10000):
-
-    population = [[0, 5, 7, 8, 10], [0, 5, 6, 9, 10]]
     winners = genetic_algorithm.tournament(population, graph.data)
     print(f"tournament time = {time.perf_counter() - tournament_start}")
     print(winners)
     for path in winners:
         print(genetic_algorithm.fitness(path, graph.data))
+
+    print(genetic_algorithm.mutation([0, 5, 6, 9, 10], graph.adjacency_lists))
 
     # ------------------------------
 

@@ -92,8 +92,13 @@ def generate_initial_population(
     return population
 
 
+def selection():
+    """ Calculate probabilities for tournament and crossover. """
+    pass
+
+
 def tournament(population: list[list[int]], graph_data: list[list[int]], remain_pct=0.5) -> list[list[int]]:
-    """ Randomly pick selected percent of paths of the population based on its fitness """
+    """ Randomly pick selected percent of paths of the population based on its fitness. """
     population_len = len(population)
     remain_num = math.ceil(population_len * remain_pct)
 
@@ -136,8 +141,30 @@ def crossover(path1: list[int], path2: list[int]) -> tuple[list[int], list[int]]
     return child1, child2
 
 
-def mutation(path: list[int]) -> list[int]:
-    pass
+def mutation(path: list[int], graph_adj_lists: list[list[int]]) -> list[int]:
+    """ Randomly pick node and check if possible to replace the node with a random link.
+    Replace if possible and return mutated path, if not return original path. """
+    if len(path) < 3:
+        return path
+
+    node_id = random.choice(range(len(path) - 2))
+    current = path[node_id]
+    next_node = path[node_id + 1]
+    after_next = path[node_id + 2]
+
+    currents_links = graph_adj_lists[current].copy()
+    currents_links.remove(next_node)
+
+    analog_links = []
+    for link in currents_links:
+        if after_next in graph_adj_lists[link]:
+            analog_links.append(link)
+
+    if analog_links:
+        path[node_id + 1] = random.choice(analog_links)
+        return path
+
+    return path
 
 
 def genetic(graph_data: list[list[int]], source: int, destination: int):
