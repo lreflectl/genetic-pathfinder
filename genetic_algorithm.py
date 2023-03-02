@@ -91,16 +91,34 @@ def generate_initial_population(
     return population
 
 
-# def tournament(population: list[list[int]], graph_data: list[list[int]], remain_pct=0.5) -> list[list[int]]:
-#     population.sort(key=lambda path: fitness(path, graph_data))
-#     population = population[:math.ceil(len(population)*remain_pct)]
-#     return population
-
-
 def tournament(population: list[list[int]], graph_data: list[list[int]], remain_pct=0.5) -> list[list[int]]:
-    population.sort(key=lambda path: fitness(path, graph_data))
-    population = population[:math.ceil(len(population)*remain_pct)]
-    return population
+    population_num = len(population)
+    remain_num = math.ceil(population_num * remain_pct)
+
+    if population_num < 1:
+        return population
+
+    def fitness_with_data(sequence):
+        return fitness(sequence, graph_data)
+
+    path_lengths = tuple(map(fitness_with_data, population))
+    shortest_path_length = min(path_lengths)
+    longest_path_length = max(path_lengths)
+
+    if longest_path_length == float('inf'):
+        raise Exception("The population contains unreachable paths.")
+
+    diff = longest_path_length - shortest_path_length
+    if diff == 0:  # if shortest path == longest, then choose children equally
+        return random.choices(population, k=remain_num)
+
+    def length_to_prob(path_length: float):
+        """ Calculate probability to choose path with linear distribution """
+        return ((longest_path_length - path_length) / diff) / population_num
+
+    survival_probabilities = tuple(map(length_to_prob, path_lengths))
+
+    return random.choices(population, weights=survival_probabilities, k=remain_num)
 
 
 def crossover(path1: list[int], path2: list[int]) -> tuple[list[int], list[int]]:

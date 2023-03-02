@@ -4,7 +4,7 @@ import random
 
 
 class Graph:
-    def __init__(self, num_nodes, edges, is_directed=False):
+    def __init__(self, num_nodes: int, edges: list[tuple], is_directed=False):
         if len(edges) < 1:
             raise Exception('Graph should contain at least one node.')
         if len(edges[0]) == 2:

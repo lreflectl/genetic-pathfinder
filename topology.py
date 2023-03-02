@@ -17,10 +17,12 @@ def main():
     # fat_tree_topology = fnss.fat_tree_topology(4)
     # draw_fnss_topology(fat_tree_topology.graph)
 
-    # num_nodes = 13
-    # edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (6, 8, 5),
-    #          (6, 9, 2), (7, 8, 1), (8, 10, 4), (8, 12, 3), (9, 10, 3), (11, 6, 3), (12, 7, 5)]
+    num_nodes = 13
+    edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (5, 6, 3),
+             (6, 8, 5), (6, 9, 2), (7, 8, 1), (8, 10, 4), (8, 12, 3), (9, 10, 3), (11, 6, 3), (12, 7, 5)]
     # python_graph.draw_directed_weighted_graph(edges)
+
+    graph = python_graph.Graph(num_nodes, edges)
 
     # ------ Algorithms time comparison ------
 
@@ -49,23 +51,25 @@ def main():
     # ------------------------------
 
     # random.seed(123)
-    # initial_pop_start = time.perf_counter()
+    initial_pop_start = time.perf_counter()
     # for _ in range(10000):
-    #     population = genetic_algorithm.generate_initial_population(18, 29, 32, graph.data)
-    # print(f"generate_initial_population time = {time.perf_counter() - initial_pop_start}")
-    # print(population)
-    # tournament_start = time.perf_counter()
-    # for _ in range(10000):
-    #     best_path = genetic_algorithm.tournament(population, graph.data)[0]
-    # print(f"tournament time = {time.perf_counter() - tournament_start}")
-    # print(best_path)
+    population = genetic_algorithm.generate_initial_population(0, 10, 8, graph.data)
+    print(f"generate_initial_population time = {time.perf_counter() - initial_pop_start}")
+    print(population)
+    tournament_start = time.perf_counter()
+    for _ in range(10000):
+        winners = genetic_algorithm.tournament(population, graph.data)
+    print(f"tournament time = {time.perf_counter() - tournament_start}")
+    print(winners)
+    for path in winners:
+        print(genetic_algorithm.fitness(path, graph.data))
 
-    # print(genetic_algorithm.generate_initial_population(0, 10, 1, graph.data))
+    # ------------------------------
 
-    path1 = [0, 3, 6, 8, 10]
-    path2 = [0, 5, 6, 9, 10]
-    children = genetic_algorithm.crossover(path1, path2)
-    print(children)
+    # path1 = [0, 3, 6, 8, 10]
+    # path2 = [0, 5, 6, 9, 10]
+    # children = genetic_algorithm.crossover(path1, path2)
+    # print(children)
 
 
 if __name__ == '__main__':
