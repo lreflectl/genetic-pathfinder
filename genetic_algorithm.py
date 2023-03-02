@@ -1,5 +1,6 @@
 import math
 import random
+import numpy as np
 
 
 def reverse_dfs(destination: int, graph_data: list[list[int]]) -> list[int]:
@@ -92,33 +93,30 @@ def generate_initial_population(
 
 
 def tournament(population: list[list[int]], graph_data: list[list[int]], remain_pct=0.5) -> list[list[int]]:
-    population_num = len(population)
-    remain_num = math.ceil(population_num * remain_pct)
+    """ Randomly pick selected percent of paths of the population based on its fitness """
+    population_len = len(population)
+    remain_num = math.ceil(population_len * remain_pct)
 
-    if population_num < 1:
+    if population_len <= 1:
         return population
 
     def fitness_with_data(sequence):
         return fitness(sequence, graph_data)
 
-    path_lengths = tuple(map(fitness_with_data, population))
-    shortest_path_length = min(path_lengths)
-    longest_path_length = max(path_lengths)
+    path_lengths = np.array(tuple(map(fitness_with_data, population)))
+    if float('inf') in path_lengths:
+        raise Exception('Population contains non-existent path.')
 
-    if longest_path_length == float('inf'):
-        raise Exception("The population contains unreachable paths.")
+    def softmax(x):
+        return np.exp(x) / sum(np.exp(x))
 
-    diff = longest_path_length - shortest_path_length
-    if diff == 0:  # if shortest path == longest, then choose children equally
-        return random.choices(population, k=remain_num)
+    survival_probabilities = softmax(-path_lengths)
 
-    def length_to_prob(path_length: float):
-        """ Calculate probability to choose path with linear distribution """
-        return ((longest_path_length - path_length) / diff) / population_num
+    remain_ids = np.random.choice(
+        np.arange(0, population_len), p=survival_probabilities, size=remain_num, replace=False
+    )
 
-    survival_probabilities = tuple(map(length_to_prob, path_lengths))
-
-    return random.choices(population, weights=survival_probabilities, k=remain_num)
+    return [path for idx, path in enumerate(population) if idx in remain_ids]
 
 
 def crossover(path1: list[int], path2: list[int]) -> tuple[list[int], list[int]]:
