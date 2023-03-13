@@ -17,9 +17,13 @@ def main():
     # fat_tree_topology = fnss.fat_tree_topology(4)
     # draw_fnss_topology(fat_tree_topology.graph)
 
-    num_nodes = 13
-    edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (5, 6, 3),
-             (6, 8, 5), (6, 9, 2), (7, 8, 1), (8, 10, 4), (8, 12, 3), (9, 10, 3), (11, 6, 3), (12, 7, 5)]
+    # num_nodes = 13
+    # edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (5, 6, 3),
+    #          (6, 8, 5), (6, 9, 2), (7, 8, 1), (8, 10, 4), (8, 12, 3), (9, 10, 3), (11, 6, 3), (12, 7, 5)]
+
+    num_nodes = 10
+    edges = [(0, n, n) for n in range(1, 9)]
+    edges.extend([(n, 9, n) for n in range(1, 9)])
     # python_graph.draw_directed_weighted_graph(edges)
 
     graph = python_graph.Graph(num_nodes, edges)
@@ -53,9 +57,13 @@ def main():
     # random.seed(123)
     genetic_start = time.perf_counter()
     # for i in range(10000):
-    best_path = genetic_algorithm.genetic(graph.data, source=0, destination=10)
+    best_path = genetic_algorithm.genetic(graph.data, source=0, destination=9)
     print(f"Genetic time = {time.perf_counter() - genetic_start:.2f} sec")
     print(f'Best path: {best_path}, with length = {genetic_algorithm.fitness(best_path, graph.data)}')
+
+    # print(genetic_algorithm.mutation([0, 5, 9], graph.adjacency_lists))
+    # print(genetic_algorithm.crossover([0, 5, 9], [0, 1, 9]))
+    # print(genetic_algorithm.fitness([0, 1, 9], graph.data))
 
 
 if __name__ == '__main__':

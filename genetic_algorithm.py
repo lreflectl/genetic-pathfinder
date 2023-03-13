@@ -1,4 +1,3 @@
-import math
 import random
 import numpy as np
 
@@ -109,19 +108,26 @@ def generate_initial_population(
     return population
 
 
-def selection(population: list[list[int]], path_lengths: list[float], remain_pct=0.5) -> list[int]:
+def selection(population: list[list[int]], path_lengths: list[float], remain_pct=0.5, reverse_prob=False) -> list[int]:
     """ Randomly pick selected percent of paths of the population based on their fitness.
         Return ids of selected paths. """
     population_len = len(population)
-    remain_num = math.ceil(population_len * remain_pct)
+    remain_num = round(population_len * remain_pct)
 
-    if population_len <= 1:
-        return [0]
+    if remain_num < 1:
+        return []
 
     def softmax(x):
         return np.exp(x) / sum(np.exp(x))
 
-    selection_probabilities = softmax(-np.array(path_lengths))
+    # If reverse set, then longer path is picked with higher probability
+    if reverse_prob:
+        reverse_fitness = 1
+    # by default shorter path is picked with higher prob
+    else:
+        reverse_fitness = -1
+
+    selection_probabilities = softmax(np.array(path_lengths) * reverse_fitness)
 
     remain_ids = np.random.choice(
         np.arange(0, population_len), p=selection_probabilities, size=remain_num, replace=False
@@ -192,8 +198,8 @@ def mutation(path: list[int], sub_graph_adj_lists: dict[int, list[int]]) -> list
 
 
 def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[int]:
-    population_size = 8
-    generations_num = 4
+    population_size = 10
+    generations_num = 2
     crossover_prob = 0.5
     mutation_prob = 0.1
     survival_pct = 0.5
@@ -204,7 +210,6 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
         source, destination, population_size, sub_graph_nodes, sub_graph_adj_lists
     )
     path_lengths = fitness_all(population, graph_data)
-    print(path_lengths)
 
     for i in range(generations_num):
         # crossover selection
@@ -216,13 +221,14 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
         for idx in range(0, len(parents_ids), 2):
             parent1, parent2 = population[parents_ids[idx]], population[parents_ids[idx+1]]
             child1, child2 = crossover(parent1, parent2)
-            population[parents_ids[idx]], population[parents_ids[idx+1]] = child2, child1
+            population[parents_ids[idx]], population[parents_ids[idx+1]] = child1, child2
             # update new path fitness
             path_lengths[parents_ids[idx]] = fitness(child1, graph_data)
             path_lengths[parents_ids[idx + 1]] = fitness(child2, graph_data)
 
-        # mutation selection
-        mutation_ids = selection(population, path_lengths, mutation_prob)
+        # mutation selection, reverse probabilities to choose the worst paths for mutation first
+        mutation_ids = selection(population, path_lengths, mutation_prob, reverse_prob=True)
+
         for idx in mutation_ids:
             population[idx] = mutation(population[idx], sub_graph_adj_lists)
             # update path length after mutation
@@ -230,10 +236,14 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
 
         # survivor selection
         survivors_ids = selection(population, path_lengths, survival_pct)
-
+        # if there are no survivors, stop on current generation
+        if not survivors_ids:
+            break
         # best fitted path remain, others die
         population = [population[idx] for idx in survivors_ids]
         path_lengths = [path_lengths[idx] for idx in survivors_ids]
 
+    print("result population lengths =", path_lengths)
+    print('result paths =', population)
     best_path_id = path_lengths.index(min(path_lengths))
     return population[best_path_id]
