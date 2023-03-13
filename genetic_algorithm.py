@@ -46,11 +46,8 @@ def randomized_dfs(
             if not visited[neigh]:
                 visited[neigh] = True
                 previous[neigh] = current
-                # faster than random.shuffle() to randomly distribute neighbours in stack
-                if random.getrandbits(1):  # return 0 or 1
-                    neighbours.append(neigh)
-                else:
-                    stack.append(neigh)
+                neighbours.append(neigh)
+        random.shuffle(neighbours)  # can be improved
         stack.extend(neighbours)
 
     path = []
@@ -198,11 +195,12 @@ def mutation(path: list[int], sub_graph_adj_lists: dict[int, list[int]]) -> list
 
 
 def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[int]:
-    population_size = 10
-    generations_num = 2
+    population_size = 4
+    max_generations_num = 6
     crossover_prob = 0.5
     mutation_prob = 0.1
-    survival_pct = 0.5
+    survival_pct = 0.6
+    max_generations_unimproved = 2
 
     sub_graph_nodes = reverse_dfs(destination, graph_data)
     sub_graph_adj_lists = create_sub_graph_adj_lists(sub_graph_nodes, graph_data)
@@ -210,8 +208,10 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
         source, destination, population_size, sub_graph_nodes, sub_graph_adj_lists
     )
     path_lengths = fitness_all(population, graph_data)
+    generations_unimproved = 0
+    last_best_length = float('inf')
 
-    for i in range(generations_num):
+    for i in range(max_generations_num):
         # crossover selection
         parents_ids = selection(population, path_lengths, crossover_prob)
         # when some path has no pair, skip it
@@ -243,7 +243,18 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
         population = [population[idx] for idx in survivors_ids]
         path_lengths = [path_lengths[idx] for idx in survivors_ids]
 
-    print("result population lengths =", path_lengths)
-    print('result paths =', population)
+        current_best_length = min(path_lengths)
+        if current_best_length == last_best_length:
+            generations_unimproved += 1
+        else:
+            generations_unimproved = 0
+        last_best_length = current_best_length
+
+        if generations_unimproved >= max_generations_unimproved:
+            # print(f"Termination because there has been no improvement for {generations_unimproved} generations.")
+            break
+
+    # print("result population lengths =", path_lengths)
+    # print('result paths =', population)
     best_path_id = path_lengths.index(min(path_lengths))
     return population[best_path_id]
