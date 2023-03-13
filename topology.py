@@ -51,27 +51,11 @@ def main():
     # ------------------------------
 
     # random.seed(123)
-    initial_pop_start = time.perf_counter()
-    # for _ in range(10000):
-    population = genetic_algorithm.generate_initial_population(0, 10, 8, graph.data)
-    print(f"generate_initial_population time = {time.perf_counter() - initial_pop_start}")
-    print(population)
-    tournament_start = time.perf_counter()
-    # for _ in range(10000):
-    winners = genetic_algorithm.tournament(population, graph.data)
-    print(f"tournament time = {time.perf_counter() - tournament_start}")
-    print(winners)
-    for path in winners:
-        print(genetic_algorithm.fitness(path, graph.data))
-
-    print(genetic_algorithm.mutation([0, 5, 6, 9, 10], graph.adjacency_lists))
-
-    # ------------------------------
-
-    # path1 = [0, 3, 6, 8, 10]
-    # path2 = [0, 5, 6, 9, 10]
-    # children = genetic_algorithm.crossover(path1, path2)
-    # print(children)
+    genetic_start = time.perf_counter()
+    # for i in range(10000):
+    best_path = genetic_algorithm.genetic(graph.data, source=0, destination=10)
+    print(f"Genetic time = {time.perf_counter() - genetic_start:.2f} sec")
+    print(f'Best path: {best_path}, with length = {genetic_algorithm.fitness(best_path, graph.data)}')
 
 
 if __name__ == '__main__':

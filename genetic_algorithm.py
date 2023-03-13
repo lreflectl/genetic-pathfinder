@@ -75,15 +75,32 @@ def fitness(path: list[int], graph_data: list[list[int]]) -> float:
         else:
             path_cost = float('inf')
             break
+
     return path_cost
 
 
-def generate_initial_population(
-        source: int, destination: int, population_size: int, graph_data: list[list[int]]) -> list[list[int]]:
-    """ Creates random sample of possible paths from source to destination. """
-    sub_graph_nodes = reverse_dfs(destination, graph_data)
+def fitness_all(population: list[list[int]], graph_data: list[list[int]]) -> list[float]:
+    """ Calculate all path costs of the population. """
+    results = []
+    for path in population:
+        path_cost = 0
+        for idx in range(len(path) - 1):
+            n1, n2 = path[idx], path[idx + 1]
+            edge_cost = graph_data[n1][n2]
+            if edge_cost != 0:
+                path_cost += graph_data[n1][n2]
+            else:
+                path_cost = float('inf')
+                break
+        results.append(path_cost)
+    return results
 
-    sub_graph_adj_lists = create_sub_graph_adj_lists(sub_graph_nodes, graph_data)
+
+def generate_initial_population(
+        source: int, destination: int, population_size: int, sub_graph_nodes: list[int],
+        sub_graph_adj_lists: dict[int, list[int]]
+) -> list[list[int]]:
+    """ Creates random sample of possible paths from source to destination. """
 
     population = []
     for _ in range(population_size):
@@ -92,41 +109,30 @@ def generate_initial_population(
     return population
 
 
-def selection():
-    """ Calculate probabilities for tournament and crossover. """
-    pass
-
-
-def tournament(population: list[list[int]], graph_data: list[list[int]], remain_pct=0.5) -> list[list[int]]:
-    """ Randomly pick selected percent of paths of the population based on its fitness. """
+def selection(population: list[list[int]], path_lengths: list[float], remain_pct=0.5) -> list[int]:
+    """ Randomly pick selected percent of paths of the population based on their fitness.
+        Return ids of selected paths. """
     population_len = len(population)
     remain_num = math.ceil(population_len * remain_pct)
 
     if population_len <= 1:
-        return population
-
-    def fitness_with_data(sequence):
-        return fitness(sequence, graph_data)
-
-    path_lengths = np.array(tuple(map(fitness_with_data, population)))
-    if float('inf') in path_lengths:
-        raise Exception('Population contains non-existent path.')
+        return [0]
 
     def softmax(x):
         return np.exp(x) / sum(np.exp(x))
 
-    survival_probabilities = softmax(-path_lengths)
+    selection_probabilities = softmax(-np.array(path_lengths))
 
     remain_ids = np.random.choice(
-        np.arange(0, population_len), p=survival_probabilities, size=remain_num, replace=False
+        np.arange(0, population_len), p=selection_probabilities, size=remain_num, replace=False
     )
 
-    return [path for idx, path in enumerate(population) if idx in remain_ids]
+    return list(remain_ids)
 
 
 def crossover(path1: list[int], path2: list[int]) -> tuple[list[int], list[int]]:
     """ Randomly pick common node for the paths, then cut them and connect pieces in with each other.
-    Support only simple paths. Return two new children. """
+        Support only simple paths. Return two new children. """
 
     common_nodes = [node for node in path1[1:-2] if node in path2]
     if len(common_nodes) < 1:
@@ -141,9 +147,27 @@ def crossover(path1: list[int], path2: list[int]) -> tuple[list[int], list[int]]
     return child1, child2
 
 
-def mutation(path: list[int], graph_adj_lists: list[list[int]]) -> list[int]:
+def crossover_all(parents: list[list[int]]) -> list[list[int]]:
+    # if some path has no pair, then leave it as is
+    last_path = None
+    if len(parents) % 2 == 1:
+        last_path = parents[-1]
+
+    children = []
+    for idx in range(0, len(parents) - 1, 2):
+        child1, child2 = crossover(parents[idx], parents[idx+1])
+        children.append(child1)
+        children.append(child2)
+
+    if last_path:
+        children.append(last_path)
+
+    return children
+
+
+def mutation(path: list[int], sub_graph_adj_lists: dict[int, list[int]]) -> list[int]:
     """ Randomly pick node and check if possible to replace the node with a random link.
-    Replace if possible and return mutated path, if not return original path. """
+        Replace if possible and return mutated path, if not return original path. """
     if len(path) < 3:
         return path
 
@@ -152,12 +176,12 @@ def mutation(path: list[int], graph_adj_lists: list[list[int]]) -> list[int]:
     next_node = path[node_id + 1]
     after_next = path[node_id + 2]
 
-    currents_links = graph_adj_lists[current].copy()
+    currents_links = sub_graph_adj_lists[current].copy()
     currents_links.remove(next_node)
 
     analog_links = []
     for link in currents_links:
-        if after_next in graph_adj_lists[link]:
+        if after_next in sub_graph_adj_lists[link]:
             analog_links.append(link)
 
     if analog_links:
@@ -167,6 +191,49 @@ def mutation(path: list[int], graph_adj_lists: list[list[int]]) -> list[int]:
     return path
 
 
-def genetic(graph_data: list[list[int]], source: int, destination: int):
-    best_route = []
-    return best_route
+def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[int]:
+    population_size = 8
+    generations_num = 4
+    crossover_prob = 0.5
+    mutation_prob = 0.1
+    survival_pct = 0.5
+
+    sub_graph_nodes = reverse_dfs(destination, graph_data)
+    sub_graph_adj_lists = create_sub_graph_adj_lists(sub_graph_nodes, graph_data)
+    population = generate_initial_population(
+        source, destination, population_size, sub_graph_nodes, sub_graph_adj_lists
+    )
+    path_lengths = fitness_all(population, graph_data)
+    print(path_lengths)
+
+    for i in range(generations_num):
+        # crossover selection
+        parents_ids = selection(population, path_lengths, crossover_prob)
+        # when some path has no pair, skip it
+        if len(parents_ids) % 2 == 1:
+            parents_ids.pop()
+        # crossover through the population
+        for idx in range(0, len(parents_ids), 2):
+            parent1, parent2 = population[parents_ids[idx]], population[parents_ids[idx+1]]
+            child1, child2 = crossover(parent1, parent2)
+            population[parents_ids[idx]], population[parents_ids[idx+1]] = child2, child1
+            # update new path fitness
+            path_lengths[parents_ids[idx]] = fitness(child1, graph_data)
+            path_lengths[parents_ids[idx + 1]] = fitness(child2, graph_data)
+
+        # mutation selection
+        mutation_ids = selection(population, path_lengths, mutation_prob)
+        for idx in mutation_ids:
+            population[idx] = mutation(population[idx], sub_graph_adj_lists)
+            # update path length after mutation
+            path_lengths[idx] = fitness(population[idx], graph_data)
+
+        # survivor selection
+        survivors_ids = selection(population, path_lengths, survival_pct)
+
+        # best fitted path remain, others die
+        population = [population[idx] for idx in survivors_ids]
+        path_lengths = [path_lengths[idx] for idx in survivors_ids]
+
+    best_path_id = path_lengths.index(min(path_lengths))
+    return population[best_path_id]
