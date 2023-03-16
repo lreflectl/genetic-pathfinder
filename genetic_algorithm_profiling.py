@@ -28,10 +28,10 @@ print(f"Result time = {end-start:.2f} sec")
 # end = time.perf_counter()
 # print(f"Result time = {end-start:.2f} sec")
 # ------------
-# path_lengths = [1, 30, 14, 15, 16, 17]
-# frequencies = [0, 0, 0, 0, 0, 0]
-# for i in range(10000):
-#     selected_ids = selection(path_lengths)
-#     for idx in selected_ids:
-#         frequencies[idx] += 1
-# print(frequencies)
+path_lengths = [2, 3, 4, 5, 6, 7]
+frequencies = [0, 0, 0, 0, 0, 0]
+for i in range(10000):
+    selected_ids = selection(path_lengths)
+    for idx in selected_ids:
+        frequencies[idx] += 1
+print(frequencies)

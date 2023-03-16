@@ -149,17 +149,12 @@ def selection(path_lengths: list[float], remain_pct=0.5, reverse_prob=False) -> 
 #     if remain_num < 1:
 #         return []
 #
-#     def softmax(x):
-#         return np.exp(x) / sum(np.exp(x))
+#     if not reverse_prob:
+#         offset = max(path_lengths) + min(path_lengths)
+#         path_lengths = tuple(offset - path_length for path_length in path_lengths)
 #
-#     # If reverse set, then longer path is picked with higher probability
-#     if reverse_prob:
-#         reverse_fitness = 1
-#     # by default shorter path is picked with higher prob
-#     else:
-#         reverse_fitness = -1
-#
-#     selection_probabilities = softmax(np.array(path_lengths) * reverse_fitness)
+#     path_lengths = np.array(path_lengths)
+#     selection_probabilities = path_lengths / path_lengths.sum()
 #
 #     remain_ids = np.random.choice(
 #         np.arange(0, population_len), p=selection_probabilities, size=remain_num, replace=False
@@ -248,7 +243,7 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
 
     for i in range(max_generations_num):
         # crossover selection
-        parents_ids = selection(population, path_lengths, crossover_prob)
+        parents_ids = selection(path_lengths, crossover_prob)
         # when some path has no pair, skip it
         if len(parents_ids) % 2 == 1:
             parents_ids.pop()
@@ -262,7 +257,7 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
             path_lengths[parents_ids[idx + 1]] = fitness(child2, graph_data)
 
         # mutation selection, reverse probabilities to choose the worst paths for mutation first
-        mutation_ids = selection(population, path_lengths, mutation_prob, reverse_prob=True)
+        mutation_ids = selection(path_lengths, mutation_prob, reverse_prob=True)
 
         for idx in mutation_ids:
             population[idx] = mutation(population[idx], sub_graph_adj_lists)
@@ -270,7 +265,7 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
             path_lengths[idx] = fitness(population[idx], graph_data)
 
         # survivor selection
-        survivors_ids = selection(population, path_lengths, survival_pct)
+        survivors_ids = selection(path_lengths, survival_pct)
         # if there are no survivors, stop on current generation
         if not survivors_ids:
             break
