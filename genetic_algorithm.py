@@ -105,32 +105,67 @@ def generate_initial_population(
     return population
 
 
-def selection(population: list[list[int]], path_lengths: list[float], remain_pct=0.5, reverse_prob=False) -> list[int]:
+def selection(path_lengths: list[float], remain_pct=0.5, reverse_prob=False) -> list[int]:
     """ Randomly pick selected percent of paths of the population based on their fitness.
         Return ids of selected paths. """
-    population_len = len(population)
-    remain_num = round(population_len * remain_pct)
+    remain_num = round(len(path_lengths) * remain_pct)
 
     if remain_num < 1:
         return []
 
-    def softmax(x):
-        return np.exp(x) / sum(np.exp(x))
+    if not reverse_prob:
+        max_path = max(path_lengths)
+        min_path = min(path_lengths)
 
-    # If reverse set, then longer path is picked with higher probability
-    if reverse_prob:
-        reverse_fitness = 1
-    # by default shorter path is picked with higher prob
-    else:
-        reverse_fitness = -1
+        def reverse_path_length(path_len):
+            return max_path - path_len + min_path
 
-    selection_probabilities = softmax(np.array(path_lengths) * reverse_fitness)
+        path_lengths = map(reverse_path_length, path_lengths)
 
-    remain_ids = np.random.choice(
-        np.arange(0, population_len), p=selection_probabilities, size=remain_num, replace=False
-    )
+    # create a dict for saving the initial indexes of paths after multiple roulette spins
+    path_lengths_dict = {path_idx: path_length for path_idx, path_length in enumerate(path_lengths)}
 
-    return list(remain_ids)
+    remain_ids = []
+    for spin in range(remain_num):
+        p_sum = sum(path_lengths_dict.values())
+        fixed_point = random.randint(0, p_sum)
+        cumulative_length = 0
+        for path_idx, length in path_lengths_dict.items():
+            cumulative_length += length
+            if fixed_point <= cumulative_length:
+                remain_ids.append(path_idx)
+                path_lengths_dict.pop(path_idx)
+                break
+
+    return remain_ids
+
+
+# def selection(path_lengths: list[float], remain_pct=0.5, reverse_prob=False) -> list[int]:
+#     """ Randomly pick selected percent of paths of the population based on their fitness.
+#         Return ids of selected paths. """
+#     population_len = len(path_lengths)
+#     remain_num = round(population_len * remain_pct)
+#
+#     if remain_num < 1:
+#         return []
+#
+#     def softmax(x):
+#         return np.exp(x) / sum(np.exp(x))
+#
+#     # If reverse set, then longer path is picked with higher probability
+#     if reverse_prob:
+#         reverse_fitness = 1
+#     # by default shorter path is picked with higher prob
+#     else:
+#         reverse_fitness = -1
+#
+#     selection_probabilities = softmax(np.array(path_lengths) * reverse_fitness)
+#
+#     remain_ids = np.random.choice(
+#         np.arange(0, population_len), p=selection_probabilities, size=remain_num, replace=False
+#     )
+#
+#     return list(remain_ids)
 
 
 def crossover(path1: list[int], path2: list[int]) -> tuple[list[int], list[int]]:

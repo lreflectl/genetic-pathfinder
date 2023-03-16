@@ -1,62 +1,37 @@
 import time
 from genetic_algorithm import *
+import python_graph
 
 
-def generate_initial_population_profiling(
-        source: int, destination: int, population_size: int, graph_data: list[list[int]]
-) -> list[list[int]]:
-    """ Creates random sample of possible paths from source to destination. """
-    reverse_dfs_start = time.perf_counter()
-    for _ in range(10000):
-        sub_graph_nodes = reverse_dfs(destination, graph_data)
-    print(f"reverse_dfs time = {time.perf_counter() - reverse_dfs_start}")
+edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (5, 6, 3),
+         (6, 8, 5), (6, 9, 2), (7, 8, 1), (8, 10, 4), (8, 12, 3), (9, 10, 3), (11, 6, 3), (12, 7, 5)]
+num_nodes = 13
+source, destination = 0, 10
 
-    create_sub_graph_start = time.perf_counter()
-    for _ in range(10000):
-        sub_graph_data = create_sub_graph(sub_graph_nodes, graph_data)
-    print(f"create_sub_graph time = {time.perf_counter() - create_sub_graph_start}")
+graph = python_graph.Graph(num_nodes, edges, is_directed=True)
 
-    population_multiple_start = time.perf_counter()
-    for _ in range(10000):
-        population = []
-        for i in range(population_size):
-            population.append(randomized_dfs(source, destination, len(sub_graph_nodes), sub_graph_data))
-    print(f"population_multiple time = {time.perf_counter() - population_multiple_start}")
-
-    population_single_start = time.perf_counter()
-    for _ in range(10000):
-        randomized_dfs(source, destination, len(sub_graph_nodes), sub_graph_data)
-    print(f"population_single time = {time.perf_counter() - population_single_start}")
-
-    return population
-
-
-def randomized_dfs_profiling(source: int, destination: int, sub_nodes_num: int, sub_graph_data: list[list[int]]) -> list[int]:
-    """ Returns random path from source to destination on the sub graph. """
-    stack = [source]
-    visited = [False] * len(sub_graph_data)
-
-    previous = [-1] * len(sub_graph_data)
-
-    for _ in range(sub_nodes_num):
-        current = stack.pop()
-        if current == destination:
-            break
-
-        neighbours = []
-        for neighbour, weight in enumerate(sub_graph_data[current]):
-            if weight > 0 and not visited[neighbour]:
-                neighbours.append(neighbour)
-                previous[neighbour] = current
-        random.shuffle(neighbours)
-        stack.extend(neighbours)
-        visited[current] = True
-
-    path = []
-    current = destination
-    while current != -1:
-        path.append(current)
-        current = previous[current]
-    path.reverse()
-
-    return path
+# --- SETUP ---
+sub_nodes = reverse_dfs(destination, graph.data)
+sub_adj_lists = create_sub_graph_adj_lists(sub_nodes, graph.data)
+population = generate_initial_population(source, destination, 100, sub_nodes, sub_adj_lists)
+path_lengths = fitness_all(population, graph.data)
+# -------------
+start = time.perf_counter()
+for _ in range(1000):
+    selected_ids = selection(path_lengths)
+end = time.perf_counter()
+print(f"Result time = {end-start:.2f} sec")
+# -------------
+# start = time.perf_counter()
+# for _ in range(1000):
+#     selected = mutation(population[selected_ids[0]], sub_adj_lists)
+# end = time.perf_counter()
+# print(f"Result time = {end-start:.2f} sec")
+# ------------
+# path_lengths = [1, 30, 14, 15, 16, 17]
+# frequencies = [0, 0, 0, 0, 0, 0]
+# for i in range(10000):
+#     selected_ids = selection(path_lengths)
+#     for idx in selected_ids:
+#         frequencies[idx] += 1
+# print(frequencies)
