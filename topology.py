@@ -24,24 +24,31 @@ def main():
     # num_nodes = 100
     # edges = [(0, n, n) for n in range(1, 99)]
     # edges.extend([(n, 99, n) for n in range(1, 99)])
-    # python_graph.draw_directed_weighted_graph(edges)
+    python_graph.draw_directed_weighted_graph(edges)
 
     graph = python_graph.Graph(num_nodes, edges, is_directed=True)
 
     # ------ Algorithms time comparison ------
-
+    # random.seed(123)
     source, destination = 0, 10
 
     dijkstra_start = time.perf_counter()
-    for i in range(10000):
+    cumulative_path_length = 0
+    experiments = 10000
+    for i in range(experiments):
         best_path = baseline_algorithms.dijkstra(graph.data, source, destination)
+        cumulative_path_length += best_path[1]
     print(f"Dijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec, path = {best_path}")
+    print(f"Average path length = {cumulative_path_length/experiments}")
 
     genetic_start = time.perf_counter()
-    for i in range(10000):
+    cumulative_path_length = 0
+    for i in range(experiments):
         best_path = genetic_algorithm.genetic(graph.data, source, destination)
+        cumulative_path_length += genetic_algorithm.fitness(best_path, graph.data)
     print(f"Genetic time = {time.perf_counter() - genetic_start:.2f} sec,"
           f" path = {(best_path, genetic_algorithm.fitness(best_path, graph.data))}")
+    print(f"Average path length = {cumulative_path_length / experiments}")
 
     # --------------------------------------
 

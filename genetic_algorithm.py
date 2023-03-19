@@ -1,4 +1,6 @@
 import random
+import time
+
 import numpy as np
 
 
@@ -98,14 +100,14 @@ def generate_initial_population(
 ) -> list[list[int]]:
     """ Creates random sample of possible paths from source to destination. """
 
-    population = []
-    for _ in range(population_size):
-        population.append(randomized_dfs(source, destination, sub_graph_nodes, sub_graph_adj_lists))
+    population = [[] for _ in range(population_size)]
+    for idx in range(population_size):
+        population[idx] = randomized_dfs(source, destination, sub_graph_nodes, sub_graph_adj_lists)
 
     return population
 
 
-def selection(path_lengths: list[float], remain_pct=0.5, reverse_prob=False) -> list[int]:
+def selection(path_lengths: list[float], remain_pct=0.5, reverse_prob=False, preserve_best=False) -> list[int]:
     """ Randomly pick selected percent of paths of the population based on their fitness.
         Return ids of selected paths. """
     remain_num = round(len(path_lengths) * remain_pct)
@@ -113,17 +115,21 @@ def selection(path_lengths: list[float], remain_pct=0.5, reverse_prob=False) -> 
     if remain_num < 1:
         return []
 
+    min_path = min(path_lengths)
+    min_path_idx = path_lengths.index(min_path)
     if not reverse_prob:
         max_path = max(path_lengths)
-        min_path = min(path_lengths)
 
         def reverse_path_length(path_len):
             return max_path - path_len + min_path
-
         path_lengths = map(reverse_path_length, path_lengths)
 
     # create a dict for saving the initial indexes of paths after multiple roulette spins
     path_lengths_dict = {path_idx: path_length for path_idx, path_length in enumerate(path_lengths)}
+
+    if preserve_best:
+        path_lengths_dict.pop(min_path_idx)
+        remain_num -= 1
 
     remain_ids = []
     for spin in range(remain_num):
@@ -136,6 +142,9 @@ def selection(path_lengths: list[float], remain_pct=0.5, reverse_prob=False) -> 
                 remain_ids.append(path_idx)
                 path_lengths_dict.pop(path_idx)
                 break
+
+    if preserve_best:
+        remain_ids.append(min_path_idx)
 
     return remain_ids
 
@@ -240,8 +249,9 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
     path_lengths = fitness_all(population, graph_data)
     generations_unimproved = 0
     last_best_length = float('inf')
+    best_path = []
 
-    for i in range(max_generations_num):
+    for generation in range(max_generations_num):
         # crossover selection
         parents_ids = selection(path_lengths, crossover_prob)
         # when some path has no pair, skip it
@@ -264,8 +274,8 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
             # update path length after mutation
             path_lengths[idx] = fitness(population[idx], graph_data)
 
-        # survivor selection
-        survivors_ids = selection(path_lengths, survival_pct)
+        # survivors selection
+        survivors_ids = selection(path_lengths, survival_pct, preserve_best=True)
         # if there are no survivors, stop on current generation
         if not survivors_ids:
             break
@@ -274,7 +284,7 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
         path_lengths = [path_lengths[idx] for idx in survivors_ids]
 
         current_best_length = min(path_lengths)
-        if current_best_length == last_best_length:
+        if current_best_length >= last_best_length:
             generations_unimproved += 1
         else:
             generations_unimproved = 0
@@ -284,7 +294,6 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
             # print(f"Termination because there has been no improvement for {generations_unimproved} generations.")
             break
 
-    # print("result population lengths =", path_lengths)
     # print('result paths =', population)
     best_path_id = path_lengths.index(min(path_lengths))
     return population[best_path_id]

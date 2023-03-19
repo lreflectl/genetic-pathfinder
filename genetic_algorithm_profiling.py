@@ -18,7 +18,7 @@ path_lengths = fitness_all(population, graph.data)
 # -------------
 start = time.perf_counter()
 for _ in range(1000):
-    selected_ids = selection(path_lengths)
+    selected_ids = selection(path_lengths, preserve_best=True)
 end = time.perf_counter()
 print(f"Result time = {end-start:.2f} sec")
 # -------------
@@ -31,7 +31,7 @@ print(f"Result time = {end-start:.2f} sec")
 path_lengths = [2, 3, 4, 5, 6, 7]
 frequencies = [0, 0, 0, 0, 0, 0]
 for i in range(10000):
-    selected_ids = selection(path_lengths)
+    selected_ids = selection(path_lengths, preserve_best=True)
     for idx in selected_ids:
         frequencies[idx] += 1
 print(frequencies)
