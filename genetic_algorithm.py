@@ -249,7 +249,6 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
     path_lengths = fitness_all(population, graph_data)
     generations_unimproved = 0
     last_best_length = float('inf')
-    best_path = []
 
     for generation in range(max_generations_num):
         # crossover selection
@@ -276,8 +275,8 @@ def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[
 
         # survivors selection
         survivors_ids = selection(path_lengths, survival_pct, preserve_best=True)
-        # if there are no survivors, stop on current generation
-        if not survivors_ids:
+        # if there are no survivors (one preserved), stop on current generation
+        if len(survivors_ids) <= 1:
             break
         # best fitted path remain, others die
         population = [population[idx] for idx in survivors_ids]
