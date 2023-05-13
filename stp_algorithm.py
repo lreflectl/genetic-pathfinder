@@ -71,6 +71,18 @@ def build_spanning_tree(link_tree: dict[int, dict[int, dict]], nodes: list[int],
     return spanning_tree
 
 
+def set_reverse_links(spanning_tree: dict[int, dict[int, dict]], link_tree: dict[int, dict[int, dict]]):
+    """ For every link in the spanning tree set reverse one if it exists in the link tree """
+    for src_node in spanning_tree.keys():
+        for dst_node, metrics in spanning_tree[src_node].items():
+            try:
+                new_metrics = link_tree[dst_node][src_node]
+                spanning_tree.setdefault(dst_node, {})
+                spanning_tree[dst_node][src_node] = new_metrics
+            except KeyError:
+                print(f'No reverse link from {dst_node} to {src_node}!')
+
+
 def main():
     nodes = [1, 2, 3, 4, 5]
     links = [(1, 2, {'length': 6}), (2, 3, {'length': 8}), (3, 4, {'length': 7}),
@@ -84,6 +96,7 @@ def main():
     remove_cycles(link_tree)
     remove_identical_links(link_tree)
     spanning_tree = build_spanning_tree(link_tree, nodes, root_node=1)
+    set_reverse_links(spanning_tree, link_tree)
     print(link_tree)
     print(spanning_tree)
 
