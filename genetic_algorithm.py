@@ -1,7 +1,4 @@
 import random
-import time
-
-import numpy as np
 
 
 def reverse_dfs(destination: int, graph_data: list[list[int]]) -> list[int]:
