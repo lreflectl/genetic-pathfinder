@@ -72,6 +72,7 @@ def build_spanning_tree(link_tree: dict[int, dict[int, dict]], nodes: list[int],
 
 
 def set_reverse_links(spanning_tree: dict[int, dict[int, dict]], link_tree: dict[int, dict[int, dict]]):
+    """ For every link in the spanning tree set reverse one if it exists in the link tree """
     for src_node in spanning_tree.keys():
         for dst_node, metrics in spanning_tree[src_node].items():
             try:
