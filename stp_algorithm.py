@@ -73,32 +73,39 @@ def build_spanning_tree(link_tree: dict[int, dict[int, dict]], nodes: list[int],
 
 def set_reverse_links(spanning_tree: dict[int, dict[int, dict]], link_tree: dict[int, dict[int, dict]]):
     """ For every link in the spanning tree set reverse one if it exists in the link tree """
+    reverse_links_tree = {}
     for src_node in spanning_tree.keys():
         for dst_node, metrics in spanning_tree[src_node].items():
             try:
                 new_metrics = link_tree[dst_node][src_node]
-                spanning_tree.setdefault(dst_node, {})
-                spanning_tree[dst_node][src_node] = new_metrics
+                reverse_links_tree.setdefault(dst_node, {})
+                reverse_links_tree[dst_node][src_node] = new_metrics
             except KeyError:
                 print(f'No reverse link from {dst_node} to {src_node}!')
+    for src_node, dst_nodes in reverse_links_tree.items():
+        spanning_tree.setdefault(src_node, {})
+        spanning_tree[src_node].update(dst_nodes)
 
 
 def main():
-    nodes = [1, 2, 3, 4, 5]
-    links = [(1, 2, {'length': 6}), (2, 3, {'length': 8}), (3, 4, {'length': 7}),
-             (4, 5, {'length': 9}), (4, 5, {'length': 9}), (3, 3, {'length': 7}),
-             (1, 5, {'length': 7}), (5, 2, {'length': 8}), (4, 2, {'length': 8})]
+    # nodes = [1, 2, 3, 4, 5]
+    # links = [(1, 2, {'length': 6}), (2, 3, {'length': 8}), (3, 4, {'length': 7}),
+    #          (4, 5, {'length': 9}), (4, 5, {'length': 9}), (3, 3, {'length': 7}),
+    #          (1, 5, {'length': 7}), (5, 2, {'length': 8}), (4, 2, {'length': 8})]
 
-    # links = [(1, 2, {'length': 1}), (1, 3, {'length': 2}), (1, 4, {'length': 3}),
-    #          (2, 4, {'length': 2}), (2, 5, {'length': 1})]
+    nodes = [1, 2, 3, 4]
+    links = [(1, 2, {'port': 2, 'length': 1}), (2, 1, {'port': 3, 'length': 1}),
+             (2, 3, {'port': 2, 'length': 1}), (3, 2, {'port': 3, 'length': 1}),
+             (3, 4, {'port': 2, 'length': 1}), (4, 3, {'port': 2, 'length': 1})]
 
     link_tree = build_link_tree(links)
+    print(link_tree)
     remove_cycles(link_tree)
     remove_identical_links(link_tree)
     spanning_tree = build_spanning_tree(link_tree, nodes, root_node=1)
+    print("Original st:", spanning_tree)
     set_reverse_links(spanning_tree, link_tree)
-    print(link_tree)
-    print(spanning_tree)
+    print("With rv. st:", spanning_tree)
 
 
 if __name__ == '__main__':
