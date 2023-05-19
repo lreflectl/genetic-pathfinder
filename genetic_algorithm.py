@@ -1,7 +1,4 @@
 import random
-import time
-
-import numpy as np
 
 
 def reverse_dfs(destination: int, graph_data: list[list[int]]) -> list[int]:
@@ -233,13 +230,10 @@ def mutation(path: list[int], sub_graph_adj_lists: dict[int, list[int]]) -> list
     return path
 
 
-def genetic(graph_data: list[list[int]], source: int, destination: int) -> list[int]:
-    population_size = 4
-    max_generations_num = 6
-    crossover_prob = 0.5
-    mutation_prob = 0.1
-    survival_pct = 0.6
-    max_generations_unimproved = 2
+def genetic(graph_data: list[list[int]], source: int, destination: int,
+            population_size=4, max_generations_num=6, crossover_prob=0.6,
+            mutation_prob=0.1, survival_pct=0.5, max_generations_unimproved=2,
+            ) -> list[int]:
 
     sub_graph_nodes = reverse_dfs(destination, graph_data)
     sub_graph_adj_lists = create_sub_graph_adj_lists(sub_graph_nodes, graph_data)
