@@ -1,3 +1,4 @@
+import math
 import time
 import random
 import fnss
@@ -9,10 +10,12 @@ from matplotlib import pyplot as plt
 
 
 def main():
-    fat_tree_topology = fnss.fat_tree_topology(4)
+    fat_tree_topology = fnss.fat_tree_topology(8)
     num_nodes = fat_tree_topology.number_of_nodes()
-    edges = list(fat_tree_topology.edges)
-    print(edges)
+    edges = list(fat_tree_topology.edges(data=True))
+    type_to_weight = {'core_aggregation': 1, 'aggregation_edge': 2, 'edge_leaf': 3}
+    weights = {(src, dst): type_to_weight[data['type']] for src, dst, data in edges}
+    nx.set_edge_attributes(fat_tree_topology, values=weights, name='weight')
 
     # num_nodes = 13
     # edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (5, 6, 3),
@@ -21,27 +24,28 @@ def main():
     # num_nodes = 100
     # edges = [(0, n, n) for n in range(1, 99)]
     # edges.extend([(n, 99, n) for n in range(1, 99)])
-    python_graph.draw_directed_weighted_graph(edges)
+    # python_graph.draw_directed_weighted_graph(edges)
 
-    graph = python_graph.Graph(num_nodes, edges, is_directed=True)
+    graph = python_graph.Graph(num_nodes, edges, is_directed=False)
 
     # ------ Algorithms time comparison ------
-    # random.seed(123)
-    source, destination = 0, 35
+    random.seed(123)
+    source, destination = fat_tree_topology.hosts()[1], fat_tree_topology.hosts()[-1]  # First and last hosts
+    experiments = 1000
 
-    dijkstra_start = time.perf_counter()
-    cumulative_path_length = 0
-    experiments = 10000
-    for i in range(experiments):
-        best_path = baseline_algorithms.dijkstra(graph.data, source, destination)
-        cumulative_path_length += best_path[1]
-    print(f"Dijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec, path = {best_path}")
-    print(f"Average path length = {cumulative_path_length/experiments}")
+    # dijkstra_start = time.perf_counter()
+    # cumulative_path_length = 0
+    # for i in range(experiments):
+    #     best_path = baseline_algorithms.dijkstra(graph.data, source, destination)
+    #     cumulative_path_length += best_path[1]
+    # print(f"Dijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec, path = {best_path}")
+    # print(f"Average path length = {cumulative_path_length/experiments}")
 
     genetic_start = time.perf_counter()
+    population_size = math.ceil(fat_tree_topology.number_of_nodes() * 0.13)
     cumulative_path_length = 0
     for i in range(experiments):
-        best_path = genetic_algorithm.genetic(graph.data, source, destination)
+        best_path = genetic_algorithm.genetic(graph.data, source, destination, population_size=population_size)
         cumulative_path_length += genetic_algorithm.fitness(best_path, graph.data)
     print(f"Genetic time = {time.perf_counter() - genetic_start:.2f} sec,"
           f" path = {(best_path, genetic_algorithm.fitness(best_path, graph.data))}")

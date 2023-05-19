@@ -10,6 +10,8 @@ class Graph:
         if len(edges[0]) == 2:
             self._is_weighted = False
         elif len(edges[0]) == 3:
+            if type(edges[0][2]) != dict:
+                raise Exception('Unsupported data type for edge.')
             self._is_weighted = True
         else:
             raise Exception('Unsupported edge type.')
@@ -19,11 +21,11 @@ class Graph:
         self.data = [[0] * num_nodes for _ in range(num_nodes)]
         self.adjacency_lists = [[] * num_nodes for _ in range(num_nodes)]
         if self._is_weighted:
-            for n1, n2, weight in edges:
-                self.data[n1][n2] = weight
+            for n1, n2, data in edges:
+                self.data[n1][n2] = data['weight']
                 self.adjacency_lists[n1].append(n2)
                 if not is_directed:
-                    self.data[n2][n1] = weight
+                    self.data[n2][n1] = data['weight']
                     self.adjacency_lists[n2].append(n1)
         else:
             for n1, n2 in edges:
@@ -43,15 +45,15 @@ class Graph:
     def __str__(self):
         return self.__repr__()
 
-    def add_edge(self, edge: tuple[int, ...]):
+    def add_edge(self, edge: tuple):
         if self._is_weighted:
             if len(edge) != 3:
                 raise Exception('Wrong edge type for weighted graph, should be tuple(int, int, int).')
-            n1, n2, weight = edge
-            self.data[n1][n2] = weight
+            n1, n2, data = edge
+            self.data[n1][n2] = data['weight']
             self.adjacency_lists[n1].append(n2)
             if not self._is_directed:
-                self.data[n2][n1] = weight
+                self.data[n2][n1] = data['weight']
                 self.adjacency_lists[n2].append(n1)
         else:
             if len(edge) != 2:
