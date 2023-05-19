@@ -8,18 +8,15 @@ import networkx as nx
 from matplotlib import pyplot as plt
 
 
-def draw_fnss_topology(topology):
-    nx.draw(topology)
-    plt.show()
-
-
 def main():
-    # fat_tree_topology = fnss.fat_tree_topology(4)
-    # draw_fnss_topology(fat_tree_topology.graph)
+    fat_tree_topology = fnss.fat_tree_topology(4)
+    num_nodes = fat_tree_topology.number_of_nodes()
+    edges = list(fat_tree_topology.edges)
+    print(edges)
 
-    num_nodes = 13
-    edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (5, 6, 3),
-             (6, 8, 5), (6, 9, 2), (7, 8, 1), (8, 10, 4), (8, 12, 3), (9, 10, 3), (11, 6, 3), (12, 7, 5)]
+    # num_nodes = 13
+    # edges = [(0, 2, 8), (0, 3, 2), (0, 4, 7), (0, 5, 4), (2, 1, 2), (3, 6, 6), (4, 7, 2), (5, 7, 3), (5, 6, 3),
+    #          (6, 8, 5), (6, 9, 2), (7, 8, 1), (8, 10, 4), (8, 12, 3), (9, 10, 3), (11, 6, 3), (12, 7, 5)]
 
     # num_nodes = 100
     # edges = [(0, n, n) for n in range(1, 99)]
@@ -30,7 +27,7 @@ def main():
 
     # ------ Algorithms time comparison ------
     # random.seed(123)
-    source, destination = 0, 10
+    source, destination = 0, 35
 
     dijkstra_start = time.perf_counter()
     cumulative_path_length = 0
