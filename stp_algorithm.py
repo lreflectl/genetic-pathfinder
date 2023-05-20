@@ -15,7 +15,7 @@ def remove_cycles(link_tree: dict[int, dict[int, list]]):
             link_tree[key].pop(key)
 
 
-def remove_identical_links(link_tree: dict[int, dict[int, list]], metric='length'):
+def remove_identical_links(link_tree: dict[int, dict[int, list]], metric='weight'):
     """ Remove multiple links between two nodes and leave the shortest one.
         Unpack list wrapped values. """
     for node, adjacent_nodes in link_tree.items():
@@ -28,7 +28,7 @@ def remove_identical_links(link_tree: dict[int, dict[int, list]], metric='length
                 link_tree[node][adj_node] = link_values[0]
 
 
-def build_spanning_tree(link_tree: dict[int, dict[int, dict]], nodes: list[int], root_node: int, metric='length') \
+def build_spanning_tree(link_tree: dict[int, dict[int, dict]], nodes: list[int], root_node: int, metric='weight') \
         -> dict[int, dict[int, dict]] or None:
     """ Build minimal spanning tree of the given tree of links. It is assumed that the input tree
         do not have redundant links and same node cycles. Return None if graph is not connected.
@@ -94,9 +94,9 @@ def main():
     #          (1, 5, {'length': 7}), (5, 2, {'length': 8}), (4, 2, {'length': 8})]
 
     nodes = [1, 2, 3, 4]
-    links = [(1, 2, {'port': 2, 'length': 1}), (2, 1, {'port': 3, 'length': 1}),
-             (2, 3, {'port': 2, 'length': 1}), (3, 2, {'port': 3, 'length': 1}),
-             (3, 4, {'port': 2, 'length': 1}), (4, 3, {'port': 2, 'length': 1})]
+    links = [(1, 2, {'port': 2, 'weight': 1}), (2, 1, {'port': 3, 'weight': 1}),
+             (2, 3, {'port': 2, 'weight': 1}), (3, 2, {'port': 3, 'weight': 1}),
+             (3, 4, {'port': 2, 'weight': 1}), (4, 3, {'port': 2, 'weight': 1})]
 
     link_tree = build_link_tree(links)
     print(link_tree)
