@@ -3,6 +3,7 @@ import time
 import random
 import fnss
 import genetic_algorithm
+import parallel_genetic_algorithm
 import baseline_algorithms
 import python_graph
 import networkx as nx
@@ -10,7 +11,7 @@ import networkx as nx
 
 
 def main():
-    fat_tree_topology = fnss.fat_tree_topology(16)
+    fat_tree_topology = fnss.fat_tree_topology(12)
     num_nodes = fat_tree_topology.number_of_nodes()
     print(f"{num_nodes=}")
     edges = list(fat_tree_topology.edges(data=True))
@@ -30,6 +31,7 @@ def main():
     graph = python_graph.Graph(num_nodes, edges, is_directed=False)
 
     # ------ Algorithms time comparison ------
+    
     random.seed(123)
     source, destination = fat_tree_topology.hosts()[1], fat_tree_topology.hosts()[-1]  # First and last hosts
     experiments = 100
@@ -42,6 +44,8 @@ def main():
     print(f"\nDijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec, path = {best_path}")
     print(f"Average path length = {cumulative_path_length/experiments}")
 
+    # --------------------------------------
+
     genetic_start = time.perf_counter()
     population_size = math.ceil(fat_tree_topology.number_of_nodes() * 0.33)
     cumulative_path_length = 0
@@ -50,6 +54,20 @@ def main():
         cumulative_path_length += genetic_algorithm.fitness(best_path, graph.data)
     print(f"\n{population_size=}")
     print(f"Genetic time = {time.perf_counter() - genetic_start:.2f} sec,"
+          f" path = {(best_path, genetic_algorithm.fitness(best_path, graph.data))}")
+    print(f"Average path length = {cumulative_path_length / experiments}")
+
+    # --------------------------------------
+
+    parallel_genetic_start = time.perf_counter()
+    population_size = math.ceil(fat_tree_topology.number_of_nodes() * 0.33)
+    cumulative_path_length = 0
+    parallel_genetic = parallel_genetic_algorithm.ParallelGenetic(graph.data, population_size, cpus=2)
+    for i in range(experiments):
+        best_path = parallel_genetic.genetic(source, destination)
+        cumulative_path_length += genetic_algorithm.fitness(best_path, graph.data)
+    print(f"\n{population_size=}")
+    print(f"Genetic time = {time.perf_counter() - parallel_genetic_start:.2f} sec,"
           f" path = {(best_path, genetic_algorithm.fitness(best_path, graph.data))}")
     print(f"Average path length = {cumulative_path_length / experiments}")
 
