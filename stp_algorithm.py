@@ -31,7 +31,7 @@ def remove_identical_links(link_tree: dict[int, dict[int, list]], metric='weight
 def build_spanning_tree(link_tree: dict[int, dict[int, dict]], nodes: list[int], root_node: int, metric='weight') \
         -> dict[int, dict[int, dict]] or None:
     """ Build minimal spanning tree of the given tree of links. It is assumed that the input tree
-        do not have redundant links and same node cycles. Return None if graph is not connected.
+        does not have redundant links and same node cycles. Return None if graph is not connected.
         Tip: it is better to pick center node as root. """
     if not link_tree:
         return None

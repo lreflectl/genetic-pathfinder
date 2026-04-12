@@ -170,8 +170,8 @@ def selection(path_lengths: list[float], remain_pct=0.5, reverse_prob=False, pre
 
 
 def crossover(path1: list[int], path2: list[int]) -> tuple[list[int], list[int]]:
-    """ Randomly pick common node for the paths, then cut them and connect pieces in with each other.
-        Support only simple paths. Return two new children. """
+    """ Randomly pick common node for the paths, then cut them and connect pieces.
+        Supports only simple paths. Return two new children. """
 
     common_nodes = [node for node in path1[1:-2] if node in path2]
     if len(common_nodes) < 1:
@@ -187,7 +187,7 @@ def crossover(path1: list[int], path2: list[int]) -> tuple[list[int], list[int]]
 
 
 def crossover_all(parents: list[list[int]]) -> list[list[int]]:
-    # if some path has no pair, then leave it as is
+    # if some path has no pair, then leave it as it is
     last_path = None
     if len(parents) % 2 == 1:
         last_path = parents[-1]
