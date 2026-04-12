@@ -36,13 +36,13 @@ def main():
     source, destination = fat_tree_topology.hosts()[1], fat_tree_topology.hosts()[-1]  # First and last hosts
     experiments = 100
 
-    dijkstra_start = time.perf_counter()
-    cumulative_path_length = 0
-    for i in range(experiments):
-        best_path = baseline_algorithms.dijkstra(graph.data, source, destination)
-        cumulative_path_length += best_path[1]
-    print(f"\nDijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec, path = {best_path}")
-    print(f"Average path length = {cumulative_path_length/experiments}")
+    # dijkstra_start = time.perf_counter()
+    # cumulative_path_length = 0
+    # for i in range(experiments):
+    #     best_path = baseline_algorithms.dijkstra(graph.data, source, destination)
+    #     cumulative_path_length += best_path[1]
+    # print(f"\nDijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec, path = {best_path}")
+    # print(f"Average path length = {cumulative_path_length/experiments}")
 
     # --------------------------------------
 
@@ -67,7 +67,7 @@ def main():
         best_path = parallel_genetic.genetic(source, destination)
         cumulative_path_length += genetic_algorithm.fitness(best_path, graph.data)
     print(f"\n{population_size=}")
-    print(f"Genetic time = {time.perf_counter() - parallel_genetic_start:.2f} sec,"
+    print(f"Parallel genetic time = {time.perf_counter() - parallel_genetic_start:.2f} sec,"
           f" path = {(best_path, genetic_algorithm.fitness(best_path, graph.data))}")
     print(f"Average path length = {cumulative_path_length / experiments}")
 
