@@ -1,5 +1,8 @@
-import multiprocessing
+from concurrent.futures import ThreadPoolExecutor, Future
 from genetic_algorithm import create_sub_graph_adj_lists, crossover, fitness, fitness_all, generate_initial_population, mutation, reverse_dfs, selection
+
+import sys
+print(f"{sys._is_gil_enabled()=}\n")
 
 
 class ParallelGenetic():
@@ -7,14 +10,14 @@ class ParallelGenetic():
     def __init__(self, graph_data: list[list[int]], population_size: int, cpus=2):
         self.graph_data = graph_data
         self.population_size = population_size
-        self.pool = multiprocessing.Pool(cpus)
+        self.pool = ThreadPoolExecutor(cpus)
+        self.tasks: list[Future] = []
 
         self.max_generations_num = 6
         self.crossover_prob = 0.6
         self.mutation_prob = 0.1
         self.survival_pct = 0.5
         self.max_generations_unimproved = 2
-
 
     def genetic(self, source: int, destination: int) -> list[int]:
         sub_graph_nodes = reverse_dfs(destination, self.graph_data)
@@ -33,11 +36,15 @@ class ParallelGenetic():
 
             # crossover through the population
             pairs_ids = range(0, len(parents_ids), 2)
-            self.pool.starmap(crossover_pair, ((idx, population, parents_ids, path_lengths, self.graph_data) for idx in pairs_ids))
-                
+            for idx in pairs_ids:
+                self._submit_task(crossover_pair, (idx, population, parents_ids, path_lengths, self.graph_data))
+            self._await_tasks()
+
             # mutation selection, reverse probabilities to choose the worst paths for mutation first
             mutation_ids = selection(path_lengths, self.mutation_prob, reverse_prob=True)
-            self.pool.starmap(mutate, ((idx, population, sub_graph_adj_lists, path_lengths, self.graph_data) for idx in mutation_ids))
+            for idx in mutation_ids:
+                self._submit_task(mutate, (idx, population, sub_graph_adj_lists, path_lengths, self.graph_data))
+            self._await_tasks()
 
             # survivors selection
             survivors_ids = selection(path_lengths, self.survival_pct, preserve_best=True)
@@ -62,6 +69,14 @@ class ParallelGenetic():
         # print('result paths =', population)
         best_path_id = path_lengths.index(min(path_lengths))
         return population[best_path_id]
+
+    def _submit_task(self, func, args) -> None:
+        task = self.pool.submit(func, *args)
+        self.tasks.append(task)
+    
+    def _await_tasks(self) -> None:
+        for task in self.tasks:
+            task.result()
 
 
 def crossover_pair(idx, population, parents_ids, path_lengths, graph_data) -> None:

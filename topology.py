@@ -1,17 +1,17 @@
 import math
 import time
 import random
-import fnss
 import genetic_algorithm
 import parallel_genetic_algorithm
 import baseline_algorithms
 import python_graph
 import networkx as nx
+from fnss_importer import fnss
 # from matplotlib import pyplot as plt
 
 
 def main():
-    fat_tree_topology = fnss.fat_tree_topology(12)
+    fat_tree_topology = fnss.fat_tree_topology(16)
     num_nodes = fat_tree_topology.number_of_nodes()
     print(f"{num_nodes=}")
     edges = list(fat_tree_topology.edges(data=True))
@@ -34,7 +34,7 @@ def main():
     
     random.seed(123)
     source, destination = fat_tree_topology.hosts()[1], fat_tree_topology.hosts()[-1]  # First and last hosts
-    experiments = 100
+    experiments = 10
 
     # dijkstra_start = time.perf_counter()
     # cumulative_path_length = 0
@@ -62,7 +62,7 @@ def main():
     parallel_genetic_start = time.perf_counter()
     population_size = math.ceil(fat_tree_topology.number_of_nodes() * 0.33)
     cumulative_path_length = 0
-    parallel_genetic = parallel_genetic_algorithm.ParallelGenetic(graph.data, population_size, cpus=2)
+    parallel_genetic = parallel_genetic_algorithm.ParallelGenetic(graph.data, population_size, cpus=6)
     for i in range(experiments):
         best_path = parallel_genetic.genetic(source, destination)
         cumulative_path_length += genetic_algorithm.fitness(best_path, graph.data)
