@@ -15,8 +15,8 @@ def main():
     num_nodes = fat_tree_topology.number_of_nodes()
     print(f"{num_nodes=}")
     edges = list(fat_tree_topology.edges(data=True))
-    type_to_weight = {'core_aggregation': 1, 'aggregation_edge': 2, 'edge_leaf': 3}
-    weights = {(src, dst): type_to_weight[data['type']] for src, dst, data in edges}
+    type_to_weight_distribution = {'core_aggregation': (1, 10), 'aggregation_edge': (10, 100), 'edge_leaf': (100, 1000)}
+    weights = {(src, dst): random.randint(*type_to_weight_distribution[data['type']]) for src, dst, data in edges}
     nx.set_edge_attributes(fat_tree_topology, values=weights, name='weight')
 
     # num_nodes = 13
@@ -36,13 +36,13 @@ def main():
     source, destination = fat_tree_topology.hosts()[1], fat_tree_topology.hosts()[-1]  # First and last hosts
     experiments = 10
 
-    # dijkstra_start = time.perf_counter()
-    # cumulative_path_length = 0
-    # for i in range(experiments):
-    #     best_path = baseline_algorithms.dijkstra(graph.data, source, destination)
-    #     cumulative_path_length += best_path[1]
-    # print(f"\nDijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec, path = {best_path}")
-    # print(f"Average path length = {cumulative_path_length/experiments}")
+    dijkstra_start = time.perf_counter()
+    cumulative_path_length = 0
+    for i in range(experiments):
+        best_path = baseline_algorithms.dijkstra(graph.data, source, destination)
+        cumulative_path_length += best_path[1]
+    print(f"\nDijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec, path = {best_path}")
+    print(f"Average path length = {cumulative_path_length/experiments}")
 
     # --------------------------------------
 
