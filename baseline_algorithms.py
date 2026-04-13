@@ -78,43 +78,76 @@ def bfs(graph_data: list[list[int]], source: int, destination: int):
     return best_route, distance[destination], distance
 
 
-def dijkstra(graph_data: list[list[int]], source: int, destination: int):
-    heap = []
-    discovered = [False] * len(graph_data)
-    distance = [float('inf')] * len(graph_data)
-    previous = [-1] * len(graph_data)
+def dijkstra(graph_data, source, destination):
+    n = len(graph_data)
+    distance = [float('inf')] * n
+    previous = [-1] * n
 
-    discovered[source] = True
     distance[source] = 0
-    heapq.heappush(heap, Node(source, 0))
+    heap = [(0, source)]
 
     while heap:
-        current = heapq.heappop(heap).idx
-        discovered[current] = True
+        dist, current = heapq.heappop(heap)
 
-        for neighbour, dist in enumerate(graph_data[current]):
-            if dist > 0:
-                new_dist = distance[current] + dist
-                if distance[neighbour] > new_dist:
+        if dist > distance[current]:
+            continue
+
+        for neighbour, weight in enumerate(graph_data[current]):
+            if weight > 0:
+                new_dist = dist + weight
+                if new_dist < distance[neighbour]:
                     distance[neighbour] = new_dist
                     previous[neighbour] = current
+                    heapq.heappush(heap, (new_dist, neighbour))
 
-        neighbours_with_dist = (
-            (node, distance[node]) for node, weight in enumerate((dist for dist in graph_data[current])) if weight > 0
-        )
-        for node in neighbours_with_dist:
-            if not discovered[node[0]]:
-                heapq.heappush(heap, Node(node[0], node[1]))
+    # reconstruct path
+    path = []
+    cur = destination
+    while cur != -1:
+        path.append(cur)
+        cur = previous[cur]
 
-    best_route = []
-    current = destination
+    path.reverse()
+    return path, distance[destination]
 
-    while current != source and current != -1:
-        best_route.append(current)
-        current = previous[current]
-    best_route.append(source)
-    best_route.reverse()
-    return best_route, distance[destination]
+
+# def dijkstra(graph_data: list[list[int]], source: int, destination: int):
+#     heap = []
+#     discovered = [False] * len(graph_data)
+#     distance = [float('inf')] * len(graph_data)
+#     previous = [-1] * len(graph_data)
+
+#     discovered[source] = True
+#     distance[source] = 0
+#     heapq.heappush(heap, Node(source, 0))
+
+#     while heap:
+#         current = heapq.heappop(heap).idx
+#         discovered[current] = True
+
+#         for neighbour, dist in enumerate(graph_data[current]):
+#             if dist > 0:
+#                 new_dist = distance[current] + dist
+#                 if distance[neighbour] > new_dist:
+#                     distance[neighbour] = new_dist
+#                     previous[neighbour] = current
+
+#         neighbours_with_dist = (
+#             (node, distance[node]) for node, weight in enumerate((dist for dist in graph_data[current])) if weight > 0
+#         )
+#         for node in neighbours_with_dist:
+#             if not discovered[node[0]]:
+#                 heapq.heappush(heap, Node(node[0], node[1]))
+
+#     best_route = []
+#     current = destination
+
+#     while current != source and current != -1:
+#         best_route.append(current)
+#         current = previous[current]
+#     best_route.append(source)
+#     best_route.reverse()
+#     return best_route, distance[destination]
 
 
 def a_star(graph_data: list[list[int]], source: int, destination: int):

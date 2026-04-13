@@ -6,6 +6,7 @@ import parallel_genetic_algorithm
 import baseline_algorithms
 import python_graph
 import networkx as nx
+from tqdm import tqdm
 from fnss_importer import fnss
 # from matplotlib import pyplot as plt
 
@@ -13,7 +14,7 @@ from fnss_importer import fnss
 def main():
     fat_tree_topology = fnss.fat_tree_topology(16)
     num_nodes = fat_tree_topology.number_of_nodes()
-    print(f"{num_nodes=}")
+    print(f"{num_nodes=}\n")
     edges = list(fat_tree_topology.edges(data=True))
     type_to_weight_distribution = {'core_aggregation': (1, 10), 'aggregation_edge': (10, 100), 'edge_leaf': (100, 1000)}
     weights = {(src, dst): random.randint(*type_to_weight_distribution[data['type']]) for src, dst, data in edges}
@@ -34,42 +35,49 @@ def main():
     
     random.seed(123)
     source, destination = fat_tree_topology.hosts()[1], fat_tree_topology.hosts()[-1]  # First and last hosts
-    experiments = 10
+    experiments = 100
+
+    # ---------------------------------------
 
     dijkstra_start = time.perf_counter()
     cumulative_path_length = 0
-    for i in range(experiments):
+    for i in tqdm(range(experiments), "Dijkstra"):
         best_path = baseline_algorithms.dijkstra(graph.data, source, destination)
         cumulative_path_length += best_path[1]
-    print(f"\nDijkstra time = {time.perf_counter() - dijkstra_start:.2f} sec, path = {best_path}")
-    print(f"Average path length = {cumulative_path_length/experiments}")
+    dijkstra_time = time.perf_counter() - dijkstra_start
+    print(f"Dijkstra time = {dijkstra_time:.2f} sec, path = {best_path}")
+    print(f"Average path length = {cumulative_path_length/experiments}\n")
 
     # --------------------------------------
 
     genetic_start = time.perf_counter()
-    population_size = math.ceil(fat_tree_topology.number_of_nodes() * 0.33)
+    population_size = math.ceil(fat_tree_topology.number_of_nodes() * 0.16)
     cumulative_path_length = 0
-    for i in range(experiments):
+    for i in tqdm(range(experiments), "Genetic"):
         best_path = genetic_algorithm.genetic(graph.data, source, destination, population_size=population_size)
         cumulative_path_length += genetic_algorithm.fitness(best_path, graph.data)
-    print(f"\n{population_size=}")
-    print(f"Genetic time = {time.perf_counter() - genetic_start:.2f} sec,"
+    genetic_time = time.perf_counter() - genetic_start
+    print(f"{population_size=}")
+    print(f"Genetic time = {genetic_time:.2f} sec,"
           f" path = {(best_path, genetic_algorithm.fitness(best_path, graph.data))}")
     print(f"Average path length = {cumulative_path_length / experiments}")
+    print(f"{dijkstra_time/genetic_time:.2f}x improvement of previous\n")
 
     # --------------------------------------
 
     parallel_genetic_start = time.perf_counter()
-    population_size = math.ceil(fat_tree_topology.number_of_nodes() * 0.33)
+    population_size = math.ceil(fat_tree_topology.number_of_nodes() * 0.16)
     cumulative_path_length = 0
-    parallel_genetic = parallel_genetic_algorithm.ParallelGenetic(graph.data, population_size, cpus=6)
-    for i in range(experiments):
+    parallel_genetic = parallel_genetic_algorithm.ParallelGenetic(graph.data, population_size, cpus=4)
+    for i in tqdm(range(experiments), "Genetic (parallel)"):
         best_path = parallel_genetic.genetic(source, destination)
         cumulative_path_length += genetic_algorithm.fitness(best_path, graph.data)
-    print(f"\n{population_size=}")
-    print(f"Parallel genetic time = {time.perf_counter() - parallel_genetic_start:.2f} sec,"
+    parallel_genetic_time = time.perf_counter() - parallel_genetic_start
+    print(f"{population_size=}")
+    print(f"Parallel genetic time = {parallel_genetic_time:.2f} sec,"
           f" path = {(best_path, genetic_algorithm.fitness(best_path, graph.data))}")
     print(f"Average path length = {cumulative_path_length / experiments}")
+    print(f"{genetic_time/parallel_genetic_time:.2f}x improvement of previous")
 
     # --------------------------------------
 
